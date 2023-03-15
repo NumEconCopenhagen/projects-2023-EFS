@@ -1,9 +1,8 @@
-# \[Group name\]
+# Frederikke - Stefano
 
 **Group members:**
-- A
-- B
-- C
+- Frederikke Vigh
+- Stefano Napoli
 
 This repository contains  
 1. Inaugural project. 
