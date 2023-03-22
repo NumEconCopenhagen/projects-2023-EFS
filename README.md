@@ -1,8 +1,9 @@
-# Frederikke - Stefano
+# Frederikke - Stefano - Eduard
 
 **Group members:**
 - Frederikke Vigh
 - Stefano Napoli
+- Eduard Ventura Aisa
 
 This repository contains  
 1. Inaugural project. 
