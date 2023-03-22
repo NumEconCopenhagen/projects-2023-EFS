@@ -41,7 +41,7 @@ class HouseholdSpecializationModelClass:
         sol.LF_vec = np.zeros(par.wF_vec.size)
         sol.HF_vec = np.zeros(par.wF_vec.size)
 
-        sol.beta0 = np.nan
+        sol.beta0 = np.nan #not a number
         sol.beta1 = np.nan
 
     def calc_utility(self,LM,HM,LF,HF):

@@ -54,7 +54,7 @@ class HSMC:
         C = par.wM*LM + par.wF*LF
 
         # b. home production
-        if par.sigma == 1:
+        if par.sigma == 1.0:
             H = HM**(1-par.alpha)*HF**par.alpha
         elif par.sigma == 0:
             H = np.fmin(HM,HF)
@@ -155,7 +155,8 @@ class HSMC:
         
         par = self.par
         sol = self.sol
-
+        par.sigma = 1.0
+        par.alpha = 0.5
         logHFHM=[]
         logwFwM=[]
 
