@@ -127,11 +127,8 @@ class HSMC:
         sol = self.sol
         opt = SimpleNamespace()
         
-        # a. guesses:
         guess = [4.5,4.5,4.5,4.5]
-    
         constraints = ({'type': 'eq', 'fun': lambda x:  24-x[0]-x[1]},{'type': 'eq', 'fun': lambda x:  24-x[2]-x[3]})
-
         bounds = ((0,24),(0,24),(0,24),(0,24))
 
         j = optimize.minimize(
@@ -164,10 +161,11 @@ class HSMC:
             for i, x in enumerate(list(par.wF_vec)):
                 par.wF = x
                 optim = self.solve_discrete()
-                #sol.LM_vec[i]=opt.LM
-                #sol.HM_vec[i]=opt.HM
-                #sol.LF_vec[i]=opt.LF
-                #sol.HF_vec[i]=opt.HF
+                # Following possible alternative not implemented (I'll delete it if not used: Stefano)
+                # sol.LM_vec[i]=opt.LM
+                # sol.HM_vec[i]=opt.HM
+                # sol.LF_vec[i]=opt.LF
+                # sol.HF_vec[i]=opt.HF
                 logHFHM.append(np.log(optim.HF/optim.HM))
                 logwFwM.append(np.log(x/par.wM))
             par.wF = 1
