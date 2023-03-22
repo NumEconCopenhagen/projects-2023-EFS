@@ -56,7 +56,7 @@ class HSMC:
         # b. home production
         if par.sigma == 1.0:
             H = HM**(1-par.alpha)*HF**par.alpha
-        elif par.sigma == 0:
+        elif par.sigma == 0.0:
             H = np.fmin(HM,HF)
         else:
             H = ((1-par.alpha)*HM**((par.sigma-1)/par.sigma)+par.alpha*HF**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1))
@@ -227,7 +227,7 @@ class HSMC:
     
         # c. body
         for i,x1 in enumerate(alpha_vec):
-            if i > 0:
+            if i > 0:   
                 text += '\n'
             text += f'{x1:3.2f} ' # left header
             for j, x2 in enumerate(sigma_vec):
