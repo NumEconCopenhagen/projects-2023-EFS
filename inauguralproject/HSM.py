@@ -128,11 +128,7 @@ class HSMC:
         opt = SimpleNamespace()
         
         # a. guesses:
-        LM_guess = 4.5
-        HM_guess = 4.5
-        LF_guess = 4.5
-        HF_guess = 4.5
-        guess = [LM_guess,HM_guess,LF_guess,HF_guess]
+        guess = [4.5,4.5,4.5,4.5]
     
         constraints = ({'type': 'eq', 'fun': lambda x:  24-x[0]-x[1]},{'type': 'eq', 'fun': lambda x:  24-x[2]-x[3]})
 
@@ -155,7 +151,7 @@ class HSMC:
         return opt   
 
     def solve_wF_vec(self,discrete=False):
-        """ solve model for vector of female wages """
+        """ solve model for vector of female wages (Question 2/ Question 3)"""
         
         par = self.par
         sol = self.sol
@@ -166,20 +162,20 @@ class HSMC:
         if discrete:
             for i, x in enumerate(list(par.wF_vec)):
                 par.wF = x
-                opt = self.solve_discrete()
+                optim = self.solve_discrete()
                 #sol.LM_vec[i]=opt.LM
                 #sol.HM_vec[i]=opt.HM
                 #sol.LF_vec[i]=opt.LF
                 #sol.HF_vec[i]=opt.HF
-                logHFHM.append(np.log(opt.HF/opt.HM))
+                logHFHM.append(np.log(optim.HF/optim.HM))
                 logwFwM.append(np.log(x/par.wM))
             par.wF = 1
-                
+               
         else:
             for i, x in enumerate(list(par.wF_vec)):
                 par.wF = x
-                opt = self.solve(do_print=False)
-                logHFHM.append(np.log(opt.HF/opt.HM))
+                opti = self.solve(do_print=False)
+                logHFHM.append(np.log(opti.HF/opti.HM))
                 logwFwM.append(np.log(x/par.wM))
             par.wF = 1
 
@@ -214,7 +210,7 @@ class HSMC:
         pass
 
     def tableHFHM(self,alpha_vec,sigma_vec):
-        """ HF/HM table for sigma and alpha val """
+        """ HF/HM table for sigma and alpha val (Question 1) """
 
         par = self.par
         sol = self.sol
