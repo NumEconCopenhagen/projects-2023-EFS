@@ -147,50 +147,32 @@ class HSMC:
 
         return opt   
 
-    def solve_wF_vec(self,discrete=False):
+    def solve_wF_vec(self, discrete=False):
         """ solve model for vector of female wages (Question 2/ Question 3)"""
         
         par = self.par
         sol = self.sol
-        par.sigma = 1.0
-        par.alpha = 0.5
+
         logHFHM=[]
         logwFwM=[]
 
-        if discrete:
-            for i, x in enumerate(list(par.wF_vec)):
-                par.wF = x
+        for i, x in enumerate(par.wF_vec):
+            par.wF = x
+            if discrete:
                 optim = self.solve_discrete()
-                # Following possible alternative not implemented (I'll delete it if not used: Stefano)
-                # sol.LM_vec[i]=opt.LM
-                # sol.HM_vec[i]=opt.HM
-                # sol.LF_vec[i]=opt.LF
-                # sol.HF_vec[i]=opt.HF
-                logHFHM.append(np.log(optim.HF/optim.HM))
-                logwFwM.append(np.log(x/par.wM))
-            par.wF = 1
-               
-        else:
-            for i, x in enumerate(list(par.wF_vec)):
-                par.wF = x
-                opti = self.solve(do_print=False)
-                logHFHM.append(np.log(opti.HF/opti.HM))
-                logwFwM.append(np.log(x/par.wM))
-            par.wF = 1
+            else:
+                optim = self.solve(do_print=False)
+            # j = np.where(par.wF_vec==1)[0][0]
+            sol.HM_vec[i]=optim.HM
+            sol.HF_vec[i]=optim.HF
+            sol.LM_vec[i]=optim.LM
+            sol.LF_vec[i]=optim.LF
+            logHFHM.append(np.log(optim.HF/optim.HM))
+            logwFwM.append(np.log(x/par.wM))
+        
+        return logwFwM, logHFHM
+        
 
-        # a. add figure
-        fig = plt.figure()
-
-        # b. define plot area
-        ax = fig.add_subplot(1,1,1)
-
-        # c. plot type and variables
-        ax.plot(logwFwM, logHFHM)
-
-        # d. title, labels
-        ax.set_title('Change in '+r'$log\ \frac{H_F}{H_M}$' + ' against ' + r'$log\ \frac{w_F}{w_M}$')
-        ax.set_xlabel(r'$log\ \frac{w_F}{w_M}$')
-        ax.set_ylabel(r'$log\ \frac{H_F}{H_M}$')
 
     def run_regression(self):
         """ run regression """
@@ -203,6 +185,7 @@ class HSMC:
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
     
+
     def estimate(self):
         """ estimate alpha and sigma """
         par = self.par
@@ -210,7 +193,6 @@ class HSMC:
 
         # i. objective function (to minimize)
         def objective(y):
-            print(y)
             par.alpha = y[1] #chosen alpha
             par.sigma = y[0] #variables
             self.solve_wF_vec()
@@ -219,14 +201,16 @@ class HSMC:
 
         obj = lambda y: objective(y)
         guess = [0.5, 0.5]
-        bounds = [(-0.00001,1)]
+        bounds = [(0.0, 1.)] * 2
         # ii. optimizer
         result = optimize.minimize(obj,
                             guess,
                             method='Nelder-Mead',
                             bounds=bounds)
         
-        return result
+        print("alpha = ", result['x'][1])
+        print("sigma = ", result['x'][0])
+        # return result['x']
         
 
     def tableHFHM(self,alpha_vec,sigma_vec):
