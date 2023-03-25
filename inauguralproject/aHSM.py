@@ -210,8 +210,34 @@ class HSMC:
         
         print("alpha = ", result['x'][1])
         print("sigma = ", result['x'][0])
+        #print("The minimum value obtained is ", result.fun)
         # return result['x']
         
+    def modification(self, alph):
+        """ Estimate sigma given an alpha"""
+        par = self.par
+        sol = self.sol
+
+        # i. objective function (to minimize)
+        def objective(y):
+            par.alpha = alph #chosen alpha
+            par.sigma = y #variables
+            self.solve_wF_vec()
+            self.run_regression()
+            return (par.beta0_target - sol.beta0)**2 + (par.beta1_target - sol.beta1)**2
+
+        obj = lambda y: objective(y)
+        guess = [0.5]
+        bounds = [(0.0, 100.)]
+        # ii. optimizer
+        result = optimize.minimize(obj,
+                            guess,
+                            method='Nelder-Mead',
+                            bounds=bounds)
+        
+        print("sigma = ", result.x)
+        print("The minimum value obtained is ", result.fun)
+
 
     def tableHFHM(self,alpha_vec,sigma_vec):
         """ HF/HM table for sigma and alpha val (Question 1) """
