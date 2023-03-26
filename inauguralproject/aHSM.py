@@ -29,7 +29,7 @@ class HSMC:
         # d. wages
         par.wM = 1.0
         par.wF = 1.0
-        par.wF_vec = np.linspace(0.8,1.2,5) # are these the correct values? it shouldn´t be (0.8,0.9,1.0,1.1,1.2)
+        par.wF_vec = np.linspace(0.8,1.2,5)
 
         # e. targets
         par.beta0_target = 0.4
@@ -81,7 +81,7 @@ class HSMC:
         opt = SimpleNamespace()
         
         # a. all possible choices
-        x = np.linspace(0,24,49)
+        x = np.linspace(1e-8,24,49)
         LM,HM,LF,HF = np.meshgrid(x,x,x,x) # all combinations
     
         LM = LM.ravel() # vector
@@ -128,7 +128,7 @@ class HSMC:
         opt = SimpleNamespace()
         
         guess = [4.5,4.5,4.5,4.5]
-        constraints = ({'type': 'eq', 'fun': lambda x:  24-x[0]-x[1]},{'type': 'eq', 'fun': lambda x:  24-x[2]-x[3]})
+        constraints = ({'type': 'ineq', 'fun': lambda x:  24-x[0]-x[1]},{'type': 'ineq', 'fun': lambda x:  24-x[2]-x[3]})
         bounds = ((0,24),(0,24),(0,24),(0,24))
 
         j = optimize.minimize(
@@ -150,26 +150,40 @@ class HSMC:
     def solve_wF_vec(self, discrete=False):
         """ solve model for vector of female wages (Question 2/ Question 3)"""
         
+        # a. class parameters
         par = self.par
         sol = self.sol
 
+        # b. initialize vector of results
         logHFHM=[]
         logwFwM=[]
 
+        print(f'For sigma = {par.sigma:6.3f}, alpha = {par.alpha:6.3f}:')
+
+        # c. loop over wF vector 
         for i, x in enumerate(par.wF_vec):
-            par.wF = x
-            if discrete:
-                optim = self.solve_discrete()
-            else:
-                optim = self.solve(do_print=False)
-            # j = np.where(par.wF_vec==1)[0][0]
-            sol.HM_vec[i]=optim.HM
-            sol.HF_vec[i]=optim.HF
-            sol.LM_vec[i]=optim.LM
-            sol.LF_vec[i]=optim.LF
-            logHFHM.append(np.log(optim.HF/optim.HM))
-            logwFwM.append(np.log(x/par.wM))
-        
+            with np.errstate(all='ignore'):
+                par.wF = x
+            
+                # c.i. use discrete or continuous solver
+                if discrete:
+                    optim = self.solve_discrete()
+                else:
+                    optim = self.solve(do_print=False)
+            
+                # c.ii append class solution vectors
+                # j = np.where(par.wF_vec==1)[0][0]
+                sol.HM_vec[i]=optim.HM
+                sol.HF_vec[i]=optim.HF
+                sol.LM_vec[i]=optim.LM
+                sol.LF_vec[i]=optim.LF
+            
+                # c.iii print results
+                print(f'For wF = {x:6.3f} -> optimal HM = {optim.HM:6.3f}; optimal HF = {optim.HF:6.3f} -> HF/HM = {optim.HF/optim.HM:6.3f}, log HF/HM = {np.log(optim.HF/optim.HM):6.3f}')
+            
+                # c.iV append vectors of results
+                logHFHM.append(np.log(optim.HF/optim.HM))
+                logwFwM.append(np.log(x/par.wM))
         return logwFwM, logHFHM
         
 
@@ -258,13 +272,14 @@ class HSMC:
     
         # c. body
         for i,x1 in enumerate(alpha_vec):
-            if i > 0:   
-                text += '\n'
-            text += f'{x1:3.2f} ' # left header
-            for j, x2 in enumerate(sigma_vec):
-                par.alpha = x1
-                par.sigma = x2
-                text += f'{self.solve_discrete(relH=True):6.3f}'
+            with np.errstate(all='ignore'):
+                if i > 0:   
+                    text += '\n'
+                text += f'{x1:3.2f} ' # left header
+                for j, x2 in enumerate(sigma_vec):
+                    par.alpha = x1
+                    par.sigma = x2
+                    text += f'{self.solve_discrete(relH=True):6.3f}'
         
         # d. print
         print(text)
