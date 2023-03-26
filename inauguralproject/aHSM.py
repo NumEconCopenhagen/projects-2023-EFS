@@ -65,7 +65,7 @@ class HSMC:
         Q = C**par.omega*H**(1-par.omega)
         utility = np.fmax(Q,1e-8)**(1-par.rho)/(1-par.rho)
 
-        # d. disutlity of work
+        # d. disutility of work
         epsilon_ = 1+1/par.epsilon
         TM = LM+HM
         TF = LF+HF
@@ -127,10 +127,12 @@ class HSMC:
         sol = self.sol
         opt = SimpleNamespace()
         
+        #i. set up parameters (initial guess, constraints & bounds) for optimization
         guess = [4.5,4.5,4.5,4.5]
         constraints = ({'type': 'ineq', 'fun': lambda x:  24-x[0]-x[1]},{'type': 'ineq', 'fun': lambda x:  24-x[2]-x[3]})
         bounds = ((0,24),(0,24),(0,24),(0,24))
 
+        #ii. optimize (minimize) uisng SLSQP method
         j = optimize.minimize(
             self.value_of_choice, guess,
             method='SLSQP', constraints=constraints, bounds=bounds)
@@ -186,6 +188,7 @@ class HSMC:
                 # c.iV append vectors of results
                 logHFHM.append(np.log(optim.HF/optim.HM))
                 logwFwM.append(np.log(x/par.wM))
+
         return logwFwM, logHFHM
         
 
@@ -196,6 +199,8 @@ class HSMC:
         par = self.par
         sol = self.sol
 
+        # i. use the log of the previously computed vectors to do the regression and obtain
+        #beta zero and beta one
         x = np.log(par.wF_vec)
         y = np.log(sol.HF_vec/sol.HM_vec) # we want to change these
         A = np.vstack([np.ones(x.size),x]).T
@@ -209,25 +214,29 @@ class HSMC:
 
         # i. objective function (to minimize)
         def objective(y):
-            par.alpha = y[1] #chosen alpha
-            par.sigma = y[0] #variables
+            par.alpha = y[1] #both alpha and sigma are variable
+            par.sigma = y[0] 
             self.solve_wF_vec(Print=False)
             self.run_regression()
             return (par.beta0_target - sol.beta0)**2 + (par.beta1_target - sol.beta1)**2
 
+        #i. set up parameters (function, initial guess & bounds) for the optimization
         obj = lambda y: objective(y)
         guess = [0.5, 0.5]
         bounds = [(0.0, 1.)] * 2
-        # ii. optimizer
+
+        # ii. optimize (minimize) using Nelder-Mead method. Find minimum value with variable alpha and 
+        #sigma
         result = optimize.minimize(obj,
                             guess,
                             method='Nelder-Mead',
                             bounds=bounds)
         
+        #iii. print the solutions of the optimization for alpha & sigma, and the minimum value obtained
         print("alpha = ", result['x'][1])
         print("sigma = ", result['x'][0])
         print("The minimum value obtained is ", result.fun)
-        # return result['x']
+        
         
     def modification(self, alph):
         """ Estimate sigma given an alpha"""
@@ -237,20 +246,24 @@ class HSMC:
         # i. objective function (to minimize)
         def objective(y):
             par.alpha = alph #chosen alpha
-            par.sigma = y #variables
+            par.sigma = y #variable
             self.solve_wF_vec(Print=False)
             self.run_regression()
             return (par.beta0_target - sol.beta0)**2 + (par.beta1_target - sol.beta1)**2
 
+        #i. set up parameters (function, initial guess & bounds) for the optimization        
         obj = lambda y: objective(y)
         guess = [0.5]
         bounds = [(0.0, 100.)]
-        # ii. optimizer
+
+        # ii. optimizer (minimize) using Nelder-Mead method. In this case only minimum value and 
+        #sigma are to be found since alpha is being provided
         result = optimize.minimize(obj,
                             guess,
                             method='Nelder-Mead',
                             bounds=bounds)
         
+        #iii. print the solutions for the optimization given for sigma and the minimum value obtained
         print("sigma = ", result.x)
         print("The minimum value obtained is ", result.fun)
 
