@@ -120,7 +120,7 @@ class HSMC:
     def value_of_choice(self,x):
         return -self.calc_utility(x[0],x[1],x[2],x[3])
 
-    def solve(self,do_print=True):
+    def solve(self,do_print=False):
         """ solve model continously """
 
         par = self.par
@@ -147,7 +147,7 @@ class HSMC:
 
         return opt   
 
-    def solve_wF_vec(self, discrete=False):
+    def solve_wF_vec(self, discrete=False, Print=True):
         """ solve model for vector of female wages (Question 2/ Question 3)"""
         
         # a. class parameters
@@ -158,7 +158,8 @@ class HSMC:
         logHFHM=[]
         logwFwM=[]
 
-        print(f'For sigma = {par.sigma:6.3f}, alpha = {par.alpha:6.3f}:')
+        if Print:
+            print(f'For sigma = {par.sigma:6.3f}, alpha = {par.alpha:6.3f}:')
 
         # c. loop over wF vector 
         for i, x in enumerate(par.wF_vec):
@@ -169,7 +170,7 @@ class HSMC:
                 if discrete:
                     optim = self.solve_discrete()
                 else:
-                    optim = self.solve(do_print=False)
+                    optim = self.solve()
             
                 # c.ii append class solution vectors
                 # j = np.where(par.wF_vec==1)[0][0]
@@ -179,7 +180,8 @@ class HSMC:
                 sol.LF_vec[i]=optim.LF
             
                 # c.iii print results
-                print(f'For wF = {x:6.3f} -> optimal HM = {optim.HM:6.3f}; optimal HF = {optim.HF:6.3f} -> HF/HM = {optim.HF/optim.HM:6.3f}, log HF/HM = {np.log(optim.HF/optim.HM):6.3f}')
+                if Print:
+                    print(f'For wF = {x:6.3f} -> optimal HM = {optim.HM:6.3f}; optimal HF = {optim.HF:6.3f} -> HF/HM = {optim.HF/optim.HM:6.3f}, log HF/HM = {np.log(optim.HF/optim.HM):6.3f}')
             
                 # c.iV append vectors of results
                 logHFHM.append(np.log(optim.HF/optim.HM))
@@ -209,7 +211,7 @@ class HSMC:
         def objective(y):
             par.alpha = y[1] #chosen alpha
             par.sigma = y[0] #variables
-            self.solve_wF_vec()
+            self.solve_wF_vec(Print=False)
             self.run_regression()
             return (par.beta0_target - sol.beta0)**2 + (par.beta1_target - sol.beta1)**2
 
@@ -224,7 +226,7 @@ class HSMC:
         
         print("alpha = ", result['x'][1])
         print("sigma = ", result['x'][0])
-        #print("The minimum value obtained is ", result.fun)
+        print("The minimum value obtained is ", result.fun)
         # return result['x']
         
     def modification(self, alph):
@@ -236,7 +238,7 @@ class HSMC:
         def objective(y):
             par.alpha = alph #chosen alpha
             par.sigma = y #variables
-            self.solve_wF_vec()
+            self.solve_wF_vec(Print=False)
             self.run_regression()
             return (par.beta0_target - sol.beta0)**2 + (par.beta1_target - sol.beta1)**2
 
