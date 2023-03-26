@@ -29,7 +29,7 @@ class HSMC:
         # d. wages
         par.wM = 1.0
         par.wF = 1.0
-        par.wF_vec = np.linspace(0.8,1.2,5) # are these the correct values? it shouldn´t be (0.8,0.9,1.0,1.1,1.2)
+        par.wF_vec = np.linspace(0.8,1.2,5)
 
         # e. targets
         par.beta0_target = 0.4
@@ -65,7 +65,7 @@ class HSMC:
         Q = C**par.omega*H**(1-par.omega)
         utility = np.fmax(Q,1e-8)**(1-par.rho)/(1-par.rho)
 
-        # d. disutlity of work
+        # d. disutility of work
         epsilon_ = 1+1/par.epsilon
         TM = LM+HM
         TF = LF+HF
@@ -120,17 +120,19 @@ class HSMC:
     def value_of_choice(self,x):
         return -self.calc_utility(x[0],x[1],x[2],x[3])
 
-    def solve(self,do_print=True):
+    def solve(self,do_print=False):
         """ solve model continously """
 
         par = self.par
         sol = self.sol
         opt = SimpleNamespace()
         
+        #i. set up parameters (initial guess, constraints & bounds) for optimization
         guess = [4.5,4.5,4.5,4.5]
-        constraints = ({'type': 'eq', 'fun': lambda x:  24-x[0]-x[1]},{'type': 'eq', 'fun': lambda x:  24-x[2]-x[3]})
+        constraints = ({'type': 'ineq', 'fun': lambda x:  24-x[0]-x[1]},{'type': 'ineq', 'fun': lambda x:  24-x[2]-x[3]})
         bounds = ((0,24),(0,24),(0,24),(0,24))
 
+        #ii. optimize (minimize) uisng SLSQP method
         j = optimize.minimize(
             self.value_of_choice, guess,
             method='SLSQP', constraints=constraints, bounds=bounds)
@@ -147,62 +149,62 @@ class HSMC:
 
         return opt   
 
-    def solve_wF_vec(self,discrete=False):
+    def solve_wF_vec(self, discrete=False, Print=True):
         """ solve model for vector of female wages (Question 2/ Question 3)"""
         
+        # a. class parameters
         par = self.par
         sol = self.sol
-        par.sigma = 1.0
-        par.alpha = 0.5
+
+        # b. initialize vector of results
         logHFHM=[]
         logwFwM=[]
 
-        if discrete:
-            for i, x in enumerate(list(par.wF_vec)):
+        if Print:
+            print(f'For sigma = {par.sigma:6.3f}, alpha = {par.alpha:6.3f}:')
+
+        # c. loop over wF vector 
+        for i, x in enumerate(par.wF_vec):
+            with np.errstate(all='ignore'):
                 par.wF = x
-                optim = self.solve_discrete()
-                # Following possible alternative not implemented (I'll delete it if not used: Stefano)
-                # sol.LM_vec[i]=opt.LM
-                # sol.HM_vec[i]=opt.HM
-                # sol.LF_vec[i]=opt.LF
-                # sol.HF_vec[i]=opt.HF
+            
+                # c.i. use discrete or continuous solver
+                if discrete:
+                    optim = self.solve_discrete()
+                else:
+                    optim = self.solve()
+            
+                # c.ii append class solution vectors
+                sol.HM_vec[i]=optim.HM
+                sol.HF_vec[i]=optim.HF
+                sol.LM_vec[i]=optim.LM
+                sol.LF_vec[i]=optim.LF
+            
+                # c.iii print results
+                if Print:
+                    print(f'For wF = {x:6.3f} -> optimal HM = {optim.HM:6.3f}; optimal HF = {optim.HF:6.3f} -> HF/HM = {optim.HF/optim.HM:6.3f}, log HF/HM = {np.log(optim.HF/optim.HM):6.3f}')
+            
+                # c.iV append vectors of results
                 logHFHM.append(np.log(optim.HF/optim.HM))
                 logwFwM.append(np.log(x/par.wM))
-            par.wF = 1
-               
-        else:
-            for i, x in enumerate(list(par.wF_vec)):
-                par.wF = x
-                opti = self.solve(do_print=False)
-                logHFHM.append(np.log(opti.HF/opti.HM))
-                logwFwM.append(np.log(x/par.wM))
-            par.wF = 1
 
-        # a. add figure
-        fig = plt.figure()
-
-        # b. define plot area
-        ax = fig.add_subplot(1,1,1)
-
-        # c. plot type and variables
-        ax.plot(logwFwM, logHFHM)
-
-        # d. title, labels
-        ax.set_title('Change in '+r'$log\ \frac{H_F}{H_M}$' + ' against ' + r'$log\ \frac{w_F}{w_M}$')
-        ax.set_xlabel(r'$log\ \frac{w_F}{w_M}$')
-        ax.set_ylabel(r'$log\ \frac{H_F}{H_M}$')
-
+        return logwFwM, logHFHM
+        
+        
     def run_regression(self):
         """ run regression """
 
         par = self.par
         sol = self.sol
 
+        # i. use the log of the previously computed vectors to do the regression and obtain
+        #beta zero and beta one
         x = np.log(par.wF_vec)
         y = np.log(sol.HF_vec/sol.HM_vec) # we want to change these
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
     
+
     def estimate(self):
         """ estimate alpha and sigma """
         par = self.par
@@ -210,24 +212,59 @@ class HSMC:
 
         # i. objective function (to minimize)
         def objective(y):
-            print(y)
-            par.alpha = y[1] #chosen alpha
-            par.sigma = y[0] #variables
-            self.solve_wF_vec()
+            par.alpha = y[1] #both alpha and sigma are variable
+            par.sigma = y[0] 
+            self.solve_wF_vec(Print=False)
             self.run_regression()
             return (par.beta0_target - sol.beta0)**2 + (par.beta1_target - sol.beta1)**2
 
+        #i. set up parameters (function, initial guess & bounds) for the optimization
         obj = lambda y: objective(y)
         guess = [0.5, 0.5]
-        bounds = [(-0.00001,1)]
-        # ii. optimizer
+        bounds = [(0.0, 1.)] * 2
+
+        # ii. optimize (minimize) using Nelder-Mead method. Find minimum value with variable alpha and 
+        #sigma
         result = optimize.minimize(obj,
                             guess,
                             method='Nelder-Mead',
                             bounds=bounds)
         
-        return result
+        #iii. print the solutions of the optimization for alpha & sigma, and the minimum value obtained
+        print("alpha = ", result['x'][1])
+        print("sigma = ", result['x'][0])
+        print("The minimum value obtained is", result.fun)
         
+        
+    def modification(self, alph):
+        """ Estimate sigma given an alpha"""
+        par = self.par
+        sol = self.sol
+
+        # i. objective function (to minimize)
+        def objective(y):
+            par.alpha = alph #chosen alpha
+            par.sigma = y #variable
+            self.solve_wF_vec(Print=False)
+            self.run_regression()
+            return (par.beta0_target - sol.beta0)**2 + (par.beta1_target - sol.beta1)**2
+
+        #i. set up parameters (function, initial guess & bounds) for the optimization        
+        obj = lambda y: objective(y)
+        guess = [0.5]
+        bounds = [(0.0, 100.)]
+
+        # ii. optimizer (minimize) using Nelder-Mead method. In this case only minimum value and 
+        #sigma are to be found since alpha is being provided
+        result = optimize.minimize(obj,
+                            guess,
+                            method='Nelder-Mead',
+                            bounds=bounds)
+        
+        #iii. print the solutions for the optimization given for sigma and the minimum value obtained
+        print("sigma = ", result.x)
+        print("The minimum value obtained is", result.fun)
+
 
     def tableHFHM(self,alpha_vec,sigma_vec):
         """ HF/HM table for sigma and alpha val (Question 1) """
@@ -248,13 +285,14 @@ class HSMC:
     
         # c. body
         for i,x1 in enumerate(alpha_vec):
-            if i > 0:   
-                text += '\n'
-            text += f'{x1:3.2f} ' # left header
-            for j, x2 in enumerate(sigma_vec):
-                par.alpha = x1
-                par.sigma = x2
-                text += f'{self.solve_discrete(relH=True):6.3f}'
+            with np.errstate(all='ignore'):
+                if i > 0:   
+                    text += '\n'
+                text += f'{x1:3.2f} ' # left header
+                for j, x2 in enumerate(sigma_vec):
+                    par.alpha = x1
+                    par.sigma = x2
+                    text += f'{self.solve_discrete(relH=True):6.3f}'
         
         # d. print
         print(text)
