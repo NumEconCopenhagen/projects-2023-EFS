@@ -35,7 +35,7 @@ class HSMC:
         par.beta0_target = 0.4
         par.beta1_target = -0.1
 
-        # f. solution
+        # f. solution vectors
         sol.LM_vec = np.zeros(par.wF_vec.size)
         sol.HM_vec = np.zeros(par.wF_vec.size)
         sol.LF_vec = np.zeros(par.wF_vec.size)
@@ -53,7 +53,7 @@ class HSMC:
         # a. consumption of market goods
         C = par.wM*LM + par.wF*LF
 
-        # b. home production
+        # b. home production conditional of sigma values
         if par.sigma == 1.0:
             H = HM**(1-par.alpha)*HF**par.alpha
         elif par.sigma == 0.0:
@@ -118,6 +118,7 @@ class HSMC:
         return opt
 
     def value_of_choice(self,x):
+        """ defines objective function and feeds positional arguments"""
         return -self.calc_utility(x[0],x[1],x[2],x[3])
 
     def solve(self,do_print=False):
@@ -206,7 +207,7 @@ class HSMC:
     
 
     def estimate(self):
-        """ estimate alpha and sigma """
+        """ estimate alpha and sigma (Question 4) """
         par = self.par
         sol = self.sol
 
@@ -237,7 +238,7 @@ class HSMC:
         
         
     def modification(self, alph):
-        """ Estimate sigma given an alpha"""
+        """ Estimates sigma given an alpha (Question 5) """
         par = self.par
         sol = self.sol
 
@@ -267,7 +268,7 @@ class HSMC:
 
 
     def tableHFHM(self,alpha_vec,sigma_vec):
-        """ HF/HM table for sigma and alpha val (Question 1) """
+        """ HF/HM table for values of sigma and alpha (Question 1) """
 
         par = self.par
         sol = self.sol
