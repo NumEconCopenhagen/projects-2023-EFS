@@ -12,4 +12,5 @@ All the answers to the assigment questions can be found by running sequentially 
 - value_of_choiche: used to define the objective function for the solve function;
 - modification: which estimates the optimal sigma, given an alpha, to minimize deviation from empirical regression parameters;
 - tableHFHM: used to build a table returning values of HF/HM for every combination of sigma and alpha values.
+
 At last some intuition has been provided on how to expand the model to minimize deviation from regression parameters while fixing alpha to 0.5.
