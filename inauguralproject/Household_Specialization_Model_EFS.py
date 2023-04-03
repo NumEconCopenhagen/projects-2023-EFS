@@ -136,7 +136,7 @@ class HSMC:
         #ii. optimize (minimize) uisng SLSQP method
         j = optimize.minimize(
             self.value_of_choice, guess,
-            method='SLSQP', constraints=constraints, bounds=bounds)
+            method='SLSQP', constraints=constraints, bounds=bounds, tol = 0.000000000001) # added a low tolerance level to better optimize results
         
         opt.LM = j.x[0]
         opt.HM = j.x[1]
@@ -220,13 +220,12 @@ class HSMC:
             return (par.beta0_target - sol.beta0)**2 + (par.beta1_target - sol.beta1)**2
 
         #i. set up parameters (function, initial guess & bounds) for the optimization
-        obj = lambda y: objective(y)
         guess = [0.5, 0.5]
         bounds = [(0.0, 1.)] * 2
 
         # ii. optimize (minimize) using Nelder-Mead method. Find minimum value with variable alpha and 
         #sigma
-        result = optimize.minimize(obj,
+        result = optimize.minimize(objective,
                             guess,
                             method='Nelder-Mead',
                             bounds=bounds)
