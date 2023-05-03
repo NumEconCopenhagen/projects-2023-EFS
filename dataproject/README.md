@@ -2,7 +2,7 @@
 
 Our project is titled **Data project - Danes consumption pattern** and is about the Danes consumption pattern from 1994-2021 relative to Denmarks GDP. We will investigate if it is possible to see economic ups and downs from GDP in the Danes consumption on different goods. 
 
-The **results** of the project can be seen from running [dataproject.ipynb](dataproject.ipynb).
+The **results** of the project can be seen from running [St_data_p.ipynb].
 
 We apply the **following datasets**:
 
