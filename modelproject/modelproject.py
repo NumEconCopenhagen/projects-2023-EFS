@@ -20,3 +20,7 @@ def solve_ss(alpha, c):
     result = optimize.root_scalar(obj,bracket=[0.1,100],method='bisect')
     
     return result
+
+"Our code from here"
+
+from types import SimpleNamespace
