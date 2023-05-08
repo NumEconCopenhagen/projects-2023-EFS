@@ -21,15 +21,16 @@ def solve_ss(alpha, c):
     
     return result
 
+
+
 "Our code from here"
 
 from types import SimpleNamespace
-#from types import SimpleNamespace
-#import time
-#import numpy as np
-#from scipy import optimize
+import time
+import numpy as np
+from scipy import optimize
 
-class OLGModelClass():
+class OLG():
 
     def __init__(self,do_print=True):
         """ create the model """
