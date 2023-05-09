@@ -240,12 +240,3 @@ def simulate_after_s(par,sim,t,s):
     # b. end-of-period stocks
     I = sim.Y[t] - sim.C1[t] - sim.C2[t] - sim.G[t]
     sim.K[t] = (1-par.delta)*sim.K_lag[t] + I
-
-def plot_K(K_lag, K_ss = None, K_lag_int = None, K_lag_old = None, K_lag_tau = None):
-    fig = plt.figure(figsize=(6,6/1.5))
-    ax = fig.add_subplot(1,1,1)
-    ax.plot(model.sim.K_lag,label=r'$K_{t-1}$')
-    ax.axhline(K_ss,ls='--',color='black',label='analytical steady state')
-    ax.legend(frameon=True)
-    fig.tight_layout()
-    K_lag_old = model.sim.K_lag.copy()
