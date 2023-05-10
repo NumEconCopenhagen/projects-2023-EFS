@@ -52,7 +52,7 @@ class OLGModelClass():
 
         # a. list of variables
         household = ['C1','C2']
-        firm = ['K','Y','K_lag']
+        firm = ['K','Y','K_lag', 'TE_lag', 'TE']
         prices = ['w','rk','rb','r','rt']
         government = ['G','T','B','balanced_budget','B_lag']
 
@@ -161,7 +161,7 @@ def simulate_before_s(par,sim,t, f = 0.0):
     if t > 0:
         sim.K_lag[t] = sim.K[t-1]
         sim.B_lag[t] = sim.B[t-1]
-        sim.TE_lag[t] = sim.TE[0] * (1 + f) ** t
+        sim.TE_lag[t] = (1 + f) ** t
 
     # a. production and factor prices
     if par.production_function == 'ces':
