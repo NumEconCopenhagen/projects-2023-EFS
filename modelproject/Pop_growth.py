@@ -49,6 +49,7 @@ class OLGModelClass():
         par.B_lag_ini = 0.0 # initial government debt
         par.L_lag_ini = 1.0 # initial population
         par.simT = 50 # length of simulation
+        par.n = 0.0 # population growth rate
 
     def allocate(self):
         """ allocate arrays for simulation """
@@ -61,7 +62,7 @@ class OLGModelClass():
         firm = ['K','Y','A','K_lag']
         prices = ['w','rk','rb','r','rt']
         government = ['G','T','d','B','balanced_budget','B_lag']
-        population = ['L']
+        population = ['L','n']
 
         # b. allocate
         allvarnames = household + firm + prices + government + population
@@ -168,7 +169,7 @@ def simulate_before_s(par,sim,t):
     if t > 0:
         sim.K_lag[t] = sim.K[t-1]
         sim.B_lag[t] = sim.B[t-1]
-        sim.L_lag[t] = sim.L[0]*(1+n)**t
+        sim.L_lag[t] = sim.L[0]*(1+par.n)**t
 
     # a. production and factor prices
     if par.production_function == 'ces':
@@ -178,16 +179,16 @@ def simulate_before_s(par,sim,t):
 (###)
         # ii. factor prices
         sim.rk[t] = par.alpha*sim.K_lag[t]**(-par.theta-1) * sim.Y[t]**(1.0+par.theta)
-        sim.w[t] = (1-par.alpha)*(1.0)**(-par.theta-1) * sim.Y[t]**(1.0+par.theta)
+        sim.w[t] = (1-par.alpha)*(sim.L_lag[t]*par.A)**(-par.theta-1) * sim.Y[t]**(1.0+par.theta)
 
     elif par.production_function == 'cobb-douglas':
 
         # i. production
-        sim.Y[t] = sim.K_lag[t]**par.alpha * (1.0)**(1-par.alpha)
+        sim.Y[t] = sim.K_lag[t]**par.alpha * (sim.L_lag[t])**(1-par.alpha)
 
         # ii. factor prices
-        sim.rk[t] = par.alpha * sim.K_lag[t]**(par.alpha-1) * (1.0)**(1-par.alpha)
-        sim.w[t] = (1-par.alpha) * sim.K_lag[t]**(par.alpha) * (1.0)**(-par.alpha)
+        sim.rk[t] = par.alpha * sim.K_lag[t]**(par.alpha-1) * (sim.L_lag[t])**(1-par.alpha)
+        sim.w[t] = (1-par.alpha) * sim.K_lag[t]**(par.alpha) * (sim.L_lag[t]*par.A)**(-par.alpha)
 
     else:
 
