@@ -162,8 +162,10 @@ def simulate_before_s(par,sim,t):
     if t > 0:
         sim.K_lag[t] = sim.K[t-1]
         sim.B_lag[t] = sim.B[t-1]
-        sim.TE_lag[t] = sim.TE[0] * (1 + par.f) ** t
+        sim.TE_lag[t] = sim.TE[t-1] * (1.0 + par.f)
 
+    print(f"TE_lag[{t}]: {sim.TE_lag[t]}")
+    print(f"TE[{t}]: {sim.TE[t]}")
     # a. production and factor prices
     if par.production_function == 'ces':
 
@@ -202,6 +204,7 @@ def simulate_before_s(par,sim,t):
         sim.G[t] = sim.T[t] - sim.r[t]*sim.B_lag[t]
 
     sim.B[t] = (1+sim.r[t])*sim.B_lag[t] - sim.T[t] + sim.G[t]
+    sim.TE[t] = (((1+sim.r[t])*sim.B_lag[t] - sim.T[t] + sim.G[t])*0) + 1
 
 def simulate_after_s(par,sim,t,s):
     """ simulate forward """
