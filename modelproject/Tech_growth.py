@@ -34,6 +34,7 @@ class OLGModelClass():
         par.theta = 0.05 # substitution parameter
         par.delta = 0.50 # depreciation rate
         par.tech = 1.0 # initial technology growth
+        par.f = 0.05 # technology growth
 
         # c. government
         par.tau_w = 0.10 # labor income tax
@@ -61,7 +62,7 @@ class OLGModelClass():
         for varname in allvarnames:
             sim.__dict__[varname] = np.nan*np.ones(par.simT)
 
-    def simulate(self, f = 0.0,do_print=True):
+    def simulate(self,do_print=True):
         """ simulate model """
 
         t0 = time.time()
@@ -78,7 +79,7 @@ class OLGModelClass():
         for t in range(par.simT):
             
             # i. simulate before s
-            simulate_before_s(par,sim,t,f)
+            simulate_before_s(par,sim,t)
 
             if t == par.simT-1: continue          
 
@@ -155,13 +156,13 @@ def calc_euler_error(s,par,sim,t):
 
     return LHS-RHS
 
-def simulate_before_s(par,sim,t, f = 0.0):
+def simulate_before_s(par,sim,t):
     """ simulate forward """
 
     if t > 0:
         sim.K_lag[t] = sim.K[t-1]
         sim.B_lag[t] = sim.B[t-1]
-        sim.TE_lag[t] = (1 + f) ** t
+        sim.TE_lag[t] = sim.TE[0] * (1 + par.f) ** t
 
     # a. production and factor prices
     if par.production_function == 'ces':
