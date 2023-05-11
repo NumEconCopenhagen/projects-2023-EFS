@@ -38,11 +38,18 @@ class OLGModelClass():
         par.tau_w = 0.10 # labor income tax
         par.tau_r = 0.20 # capital income tax
 
+        #d. technology
+        par.A = 1.0
+
+        # e. Pay-as-you-go
+        par.d = 0.0
+
         # d. misc
         par.K_lag_ini = 1.0 # initial capital stock
         par.B_lag_ini = 0.0 # initial government debt
         par.L_lag_ini = 1.0 # initial population
         par.simT = 50 # length of simulation
+        par.n = 0.0 # population growth rate
 
     def allocate(self):
         """ allocate arrays for simulation """
@@ -52,10 +59,10 @@ class OLGModelClass():
 
         # a. list of variables
         household = ['C1','C2']
-        firm = ['K','Y','K_lag']
+        firm = ['K','Y','A','K_lag']
         prices = ['w','rk','rb','r','rt']
-        government = ['G','T','B','balanced_budget','B_lag']
-        population = ['L']
+        government = ['G','T','d','B','balanced_budget','B_lag']
+        population = ['L','n']
 
         # b. allocate
         allvarnames = household + firm + prices + government + population
@@ -162,26 +169,26 @@ def simulate_before_s(par,sim,t):
     if t > 0:
         sim.K_lag[t] = sim.K[t-1]
         sim.B_lag[t] = sim.B[t-1]
-        sim.L_lag[t] = sim.L[0]*(1+n)**t
+        sim.L_lag[t] = sim.L[0]*(1+par.n)**t
 
     # a. production and factor prices
     if par.production_function == 'ces':
 
         # i. production
-        sim.Y[t] = ( par.alpha*sim.K_lag[t]**(-par.theta) + (1-par.alpha)*sim.L_lag[t]**(-par.theta) )**(-1.0/par.theta)
+        sim.Y[t] = ( par.alpha*sim.K_lag[t]**(-par.theta) + (1-par.alpha)*(sim.L_lag[t]*par.A)**(-par.theta) )**(-1.0/par.theta)
 (###)
         # ii. factor prices
         sim.rk[t] = par.alpha*sim.K_lag[t]**(-par.theta-1) * sim.Y[t]**(1.0+par.theta)
-        sim.w[t] = (1-par.alpha)*(1.0)**(-par.theta-1) * sim.Y[t]**(1.0+par.theta)
+        sim.w[t] = (1-par.alpha)*(sim.L_lag[t]*par.A)**(-par.theta-1) * sim.Y[t]**(1.0+par.theta)
 
     elif par.production_function == 'cobb-douglas':
 
         # i. production
-        sim.Y[t] = sim.K_lag[t]**par.alpha * (1.0)**(1-par.alpha)
+        sim.Y[t] = sim.K_lag[t]**par.alpha * (sim.L_lag[t])**(1-par.alpha)
 
         # ii. factor prices
-        sim.rk[t] = par.alpha * sim.K_lag[t]**(par.alpha-1) * (1.0)**(1-par.alpha)
-        sim.w[t] = (1-par.alpha) * sim.K_lag[t]**(par.alpha) * (1.0)**(-par.alpha)
+        sim.rk[t] = par.alpha * sim.K_lag[t]**(par.alpha-1) * (sim.L_lag[t])**(1-par.alpha)
+        sim.w[t] = (1-par.alpha) * sim.K_lag[t]**(par.alpha) * (sim.L_lag[t]*par.A)**(-par.alpha)
 
     else:
 
@@ -207,7 +214,7 @@ def simulate_after_s(par,sim,t,s):
     """ simulate forward """
 
     # a. consumption of young
-    sim.C1[t] = (1-par.tau_w)*sim.w[t]*(1.0-s)
+    sim.C1[t] = (1-par.tau_w)*sim.L_lag[t]*sim.w[t]*(1.0-s)
 
     # b. end-of-period stocks
     I = sim.Y[t] - sim.C1[t] - sim.C2[t] - sim.G[t]
