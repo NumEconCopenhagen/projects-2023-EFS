@@ -176,7 +176,7 @@ def simulate_before_s(par,sim,t):
 
         # i. production
         sim.Y[t] = ( par.alpha*sim.K_lag[t]**(-par.theta) + (1-par.alpha)*(sim.L_lag[t]*par.A)**(-par.theta) )**(-1.0/par.theta)
-(###)
+        
         # ii. factor prices
         sim.rk[t] = par.alpha*sim.K_lag[t]**(-par.theta-1) * sim.Y[t]**(1.0+par.theta)
         sim.w[t] = (1-par.alpha)*(sim.L_lag[t]*par.A)**(-par.theta-1) * sim.Y[t]**(1.0+par.theta)
