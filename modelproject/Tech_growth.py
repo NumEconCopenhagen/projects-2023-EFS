@@ -204,7 +204,7 @@ def simulate_before_s(par,sim,t):
         sim.G[t] = sim.T[t] - sim.r[t]*sim.B_lag[t]
 
     sim.B[t] = (1+sim.r[t])*sim.B_lag[t] - sim.T[t] + sim.G[t]
-    sim.TE[t] = (((1+sim.r[t])*sim.B_lag[t] - sim.T[t] + sim.G[t])*0) + 1
+    sim.TE[t] = 1
 
 def simulate_after_s(par,sim,t,s):
     """ simulate forward """
