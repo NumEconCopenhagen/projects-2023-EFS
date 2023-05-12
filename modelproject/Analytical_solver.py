@@ -1,5 +1,7 @@
+import sympy as sm
 from sympy import *
-def log_analytic():
+
+def log_analytic(beta_val):
     
     """Solves household maximization problem 
     for the optimal rate of savings of young individuals, 
@@ -90,3 +92,9 @@ def log_analytic():
     print(f'Value of st that solves FOC=0:')
     display(sol_household[0])
     print(f'\n')
+
+    # i. characterizes the solution by selecting a  
+    sol_func = sm.lambdify(args=(beta),expr=sol_household[0])
+    opt_savings = sol_func(beta_val)
+    print(f'Optimal value of st for beta = {beta_val}:')
+    display(opt_savings)
