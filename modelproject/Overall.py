@@ -38,7 +38,7 @@ class OLGModelClass():
         # d. firms
         par.production_function = 'cobb-douglas'
         par.alpha = 0.5 # output elasticity to factors change
-        par.theta = 0.05 # substitution parameter
+        par.theta = 0.0 # substitution parameter
         par.delta = 0.50 # depreciation rate
 
         # e. government
@@ -80,8 +80,8 @@ class OLGModelClass():
         # a. initial values
         sim.K_lag[0] = par.K_lag_ini
         sim.B_lag[0] = par.B_lag_ini
-        sim.L_lag[0] = par.L_lag_ini
-        sim.A_lag[0] = par.A_lag_ini
+        sim.L_lag[0] = par.L_lag_ini # insert t0 value of population
+        sim.A_lag[0] = par.A_lag_ini # insert t0 value of technology
     
 
         # b. iterate
@@ -171,8 +171,8 @@ def simulate_before_s(par,sim,t):
     if t > 0:
         sim.K_lag[t] = sim.K[t-1]
         sim.B_lag[t] = sim.B[t-1]
-        sim.L_lag[t] = sim.L[t-1]*(1.0+par.n)
-        sim.A_lag[t] = sim.A[t-1]*(1.0+par.g)
+        sim.L_lag[t] = sim.L[t-1]*(1.0+par.n) # added growing population
+        sim.A_lag[t] = sim.A[t-1]*(1.0+par.g) # added growing technology
 
     # a. production and factor prices
     if par.production_function == 'ces':
@@ -213,7 +213,7 @@ def simulate_before_s(par,sim,t):
 
     sim.B[t] = (1+sim.r[t])*sim.B_lag[t] - sim.T[t] + sim.G[t]
 
-    #e. population
+    #e. population and technology
     sim.L[t] = sim.L_lag[t]
     sim.A[t] = sim.A_lag[t]
 
