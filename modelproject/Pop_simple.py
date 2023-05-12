@@ -208,6 +208,9 @@ def simulate_before_s(par,sim,t):
 
     sim.B[t] = (1+sim.r[t])*sim.B_lag[t] - sim.T[t] + sim.G[t]
 
+    #e. population
+    sim.L[t] = sim.L_lag[t]
+
 def simulate_after_s(par,sim,t,s):
     """ simulate forward """
 
