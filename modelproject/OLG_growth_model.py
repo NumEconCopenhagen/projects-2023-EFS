@@ -166,12 +166,13 @@ def simulate_before_s(par,sim,t):
         sim.K_lag[t] = sim.K[t-1]
         sim.B_lag[t] = sim.B[t-1]
         sim.L_lag[t] = sim.L_lag[0]*(1.0+par.n)**t
+        print(sim.L_lag[t])
 
     # a. production and factor prices
     if par.production_function == 'ces':
 
         # i. production
-        sim.Y[t] = ( par.alpha*sim.K_lag[t]**(-par.theta) + (1-par.alpha)*(sim.L_lag[t])**(-par.theta) )**(-1.0/par.theta)
+        sim.Y[t] = (par.alpha*sim.K_lag[t]**(-par.theta) + (1-par.alpha)*(sim.L_lag[t])**(-par.theta) )**(-1.0/par.theta)
 
         # ii. factor prices
         sim.rk[t] = par.alpha*sim.K_lag[t]**(-par.theta-1) * sim.Y[t]**(1.0+par.theta)
@@ -180,11 +181,11 @@ def simulate_before_s(par,sim,t):
     elif par.production_function == 'cobb-douglas':
 
         # i. production
-        sim.Y[t] = sim.K_lag[t]**par.alpha * (sim.L_lag[t])**(1-par.alpha)
+        sim.Y[t] = (sim.K_lag[t]**par.alpha) * ((sim.L_lag[t])**(1-par.alpha))
 
         # ii. factor prices
-        sim.rk[t] = par.alpha * sim.K_lag[t]**(par.alpha-1) * (sim.L_lag[t])**(1-par.alpha)
-        sim.w[t] = (1-par.alpha) * sim.K_lag[t]**(par.alpha) * (sim.L_lag[t])**(-par.alpha)
+        sim.rk[t] = par.alpha * (sim.K_lag[t]**(par.alpha-1)) * ((sim.L_lag[t])**(1-par.alpha))
+        sim.w[t] = (1-par.alpha) * (sim.K_lag[t]**(par.alpha)) * ((sim.L_lag[t])**(-par.alpha))
 
     else:
 
