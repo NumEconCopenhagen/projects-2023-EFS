@@ -1,7 +1,9 @@
 # Overlapping Generation Model
 
-The **Overlapping Genartion Model** is about the households basic intertemporal choices between consumption and savings and the interaction between two generations existing at the same time. We extend the model by adding population and technology growth.
+In this project we expand the ready-made version of the **Overlapping Generation Model** as seen in the Introduction to programming & numerical analysis lecture, by adding population growth.
 
-The **results** of the project can be seen from running [OLG_growth.ipynb](OLG_growth.ipynb).
+The OLG model regards households basic intertemporal choices between consumption and savings and the interaction between two generations existing at the same time.
 
-**Dependencies:** Apart from a standard Anaconda Python 3 installation, the project requires no further packages.
+The **results** of the project can be seen from running [OLG_growth.ipynb](OLG_growth.ipynb). The py file [OLG_growth_model.ipynb](OLG_growth_model.ipynb), stores the class which defines the model and the functions needed to solve it and plot the main graphs.
+
+**Dependencies:** The project require a standard Anaconda Python 3 installation; uses numpy, IPython.display import display, matplotlib.pyplot and sympy.
