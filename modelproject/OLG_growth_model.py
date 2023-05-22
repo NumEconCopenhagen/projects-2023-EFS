@@ -2,6 +2,7 @@ from types import SimpleNamespace
 import time
 import numpy as np
 from scipy import optimize
+import matplotlib.pyplot as plt
 
 class OLGModelClass():
 
@@ -30,13 +31,14 @@ class OLGModelClass():
 
         # b. firms
         par.production_function = 'cobb-douglas'
-        par.alpha = 0.30 # capital weight
-        par.theta = 0.05 # substitution parameter
-        par.delta = 0.50 # depreciation rate
+        par.alpha = 0.5 # capital weight
+        par.theta = 0.0 # substitution parameter
+        par.delta = 0.5 # depreciation rate
 
         # c. government
-        par.tau_w = 0.10 # labor income tax
-        par.tau_r = 0.20 # capital income tax
+        par.tau_w = 0.0 # labor income tax
+        par.tau_r = 0.0 # capital income tax
+
 
         # d. misc
         par.K_lag_ini = 1.0 # initial capital stock
@@ -46,6 +48,10 @@ class OLGModelClass():
 
         # e. growth parameters
         par.n = 0.1 # population growth rate
+
+        # f. steady-state levels
+        if par.production_function == 'cobb-douglas':
+            par.k_ss = ((1-par.alpha)/((1+par.n)*(1+1.0/par.beta)))**(1/(1-par.alpha)) # steady-state level of capital for Log utility and Cobb Douglas production
 
     def allocate(self):
         """ allocate arrays for simulation """
@@ -166,7 +172,6 @@ def simulate_before_s(par,sim,t):
         sim.K_lag[t] = sim.K[t-1]
         sim.B_lag[t] = sim.B[t-1]
         sim.L_lag[t] = sim.L_lag[0]*(1.0+par.n)**t
-        print(sim.L_lag[t])
 
     # a. production and factor prices
     if par.production_function == 'ces':
@@ -201,6 +206,7 @@ def simulate_before_s(par,sim,t):
 
     # d. government
     sim.T[t] = par.tau_r*sim.r[t]*(sim.K_lag[t]+sim.B_lag[t]) + par.tau_w*sim.w[t]*sim.L_lag[t]
+    sim.balanced_budget[:] = True 
 
     if sim.balanced_budget[t]:
         sim.G[t] = sim.T[t] - sim.r[t]*sim.B_lag[t]
@@ -220,3 +226,13 @@ def simulate_after_s(par,sim,t,s):
     I = sim.Y[t] - sim.C1[t] - sim.C2[t] - sim.G[t]
     sim.K[t] = (1-par.delta)*sim.K_lag[t] + I
     sim.k[t] = sim.K[t]/sim.L[t]
+
+def capital_accumulation_plot(par,sim):
+        """ plots the graph for capital accumulation """
+
+        fig = plt.figure(figsize=(6,6/1.5))
+        ax = fig.add_subplot(1,1,1)
+        ax.plot(sim.k,label=r'$k_{t-1}$')
+        ax.axhline(par.k_ss,ls='--',color='black',label='analytical steady state')
+        ax.legend(frameon=True)
+        fig.tight_layout()
