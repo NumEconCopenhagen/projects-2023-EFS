@@ -237,9 +237,11 @@ def simulate_after_s(par,sim,t,s):
 def capital_accumulation_plot(par,sim):
         """ plots the graph for capital accumulation against the define steady-state level of capital 
         
-        Attributes:
-        - par = model parameter attributes
-        - sim = model simulation atributes
+        Args:
+
+            par (callable): model parameter attributes
+            sim (callable): model simulation atributes
+
         """
 
         fig = plt.figure(figsize=(6,6/1.5)) # decide figure size
@@ -252,9 +254,11 @@ def capital_accumulation_plot(par,sim):
 def population_plot(par,sim):
         """ plots the graph for population growth 
         
-        Attributes:
-        - par = model parameter attributes
-        - sim = model simulation atributes
+        Args:
+
+            par (callable): model parameter attributes
+            sim (callable): model simulation atributes
+
         """
 
         fig = plt.figure(figsize=(6,6/1.5)) # decide figure size

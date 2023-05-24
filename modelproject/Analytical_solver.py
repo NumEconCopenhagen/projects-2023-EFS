@@ -43,7 +43,10 @@ def log_analytic(beta_val=1.0/1.4):
     given logarithmic period utility function, while showing every step of the solution.
     
     Argument:
-    - beta_val = consumption discount factor """
+
+        beta_val (float): consumption discount factor; > -1
+        
+    """
 
     import sympy as sm
     from IPython.display import display
@@ -107,10 +110,10 @@ def steady_state(alpha_val = 0.5,beta_val = 1.0/1.4,n_val = 0.1):
     given Log period utility and Cobb-Douglas production
     
     Arguments:
-
-    - alpha_val = value of output elasticity to factors change
-    - beta_val = value of the consumption discount factor
-    - n_val = population growth rate
+        
+        alpha_val (float): value of output elasticity to factors change; int [0,1]
+        beta_val (float): value of the consumption discount factor; > -1
+        n_val (float): population growth rate, > -1
 
     """
 
