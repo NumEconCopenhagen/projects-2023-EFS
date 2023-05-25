@@ -2,6 +2,8 @@ import numpy as np
 from scipy.optimize import minimize
 import math
 
+
+
 def griewank(x):
     """Define Griewank function"""
     return griewank_(x[0],x[1])
@@ -11,34 +13,8 @@ def griewank_(x1,x2):
     B = np.cos(x1/np.sqrt(1))*np.cos(x2/np.sqrt(1))
     return A-B+1
 
-def compare_convergence(bounds, tolerance, warmup_iterations_list, max_iterations):
-    convergence_iterations = []
-
-    for warmup_iterations in warmup_iterations_list:
-        x_best = None
-        f_best = np.inf
-
-        for iteration in range(max_iterations):
-            x_initial = np.random.uniform(bounds[0], bounds[1], len(bounds))
-            result = minimize(griewank, x_initial, method='BFGS', tol=tolerance)
-
-            if result.success:
-                x_current = result.x
-                f_current = result.fun
-
-                if f_current < f_best:
-                    x_best = x_current
-                    f_best = f_current
-
-            if iteration >= warmup_iterations:
-                if np.linalg.norm(x_best - x_initial) <= tolerance:
-                    convergence_iterations.append(iteration)
-                    break
-
-    return convergence_iterations
-
-
 def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iterations):
+    np.random.seed(1234)
     x_best = None  # Best solution found so far
     f_best = np.inf  # Best function value found so far
     initial_guesses = []  # Store effective initial guesses
@@ -65,7 +41,11 @@ def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iteration
             if f_current < f_best or iteration == 0:
                 x_best = x_current
                 f_best = f_current
-         
+                if iteration >= warmup_iterations:
+                    best_iteration = iteration
+                    best_x_initial_zero = x_initial_zero
+                    print(f'{iteration:4d}: x0 = ({x_initial_zero[0]:7.2f},{x_initial_zero[1]:7.2f})',end='')
+                    print(f' -> converged at ({x_best[0]:7.2f},{x_best[1]:7.2f}) with f = {f_best:12.8f}')
         # Check if warm-up iterations are completed
         #if iteration >= warmup_iterations:
             # Check if the difference between the current best and initial guess is greater than tolerance
@@ -79,6 +59,10 @@ def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iteration
             # Store the effective initial guess
             initial_guesses.append(x_initial_zero)
 
+    print(f'Best iteration counting warm up{best_iteration:4d}: x0 = ({best_x_initial_zero[0]:7.2f},{best_x_initial_zero[1]:7.2f})',end='')
+    print(f' -> converged at ({x_best[0]:7.2f},{x_best[1]:7.2f}) with f = {f_best:12.8f}')
+    print(f'Best iteration not counting warm up{best_iteration - warmup_iterations:4d}: x0 = ({best_x_initial_zero[0]:7.2f},{best_x_initial_zero[1]:7.2f})',end='')
+    print(f' -> converged at ({x_best[0]:7.2f},{x_best[1]:7.2f}) with f = {f_best:12.8f}')
 
     return x_best, initial_guesses
 
