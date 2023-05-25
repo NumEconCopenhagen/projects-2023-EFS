@@ -21,8 +21,8 @@ class Worker:
         par.nu = 1/(2*16**2) # disutility of labor scaling factor
         par.omega = 1.0      # real wage
         par.tau = 0.30     # labour-income tax rate
-        par.omega_t = (1-par.tau)*par.omega
-        par.el = ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*par.omega_t**2))/(2*par.omega_t))
+        #par.omega_t = (1-par.tau)*par.omega
+        #par.el = ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*par.omega_t**2))/(2*par.omega_t))
 
         par.G_vec = np.linspace(1.0,2.0,2) 
         sol.L_vec = np.zeros(par.G_vec.size)
@@ -55,6 +55,10 @@ class Worker:
         par = self.par
         sol = self.sol
         opt = SimpleNamespace()
+
+        par.omega_t = (1-par.tau)*par.omega
+        par.el = ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*par.omega_t**2))/(2*par.omega_t))
+
         
         guess = 7.0 # initial guess
         bound = (0.000000000001,24) # bounds for L
@@ -71,10 +75,13 @@ class Worker:
             # b. append solution
             sol.L_vec[i] = sol_case1.x
             sol.u_vec[i] = self.u_func(sol_case1.x,g)
-
-            print(f'For G = {par.G_vec[i]:6.3f}: L = {sol.L_vec[i]:6.3f}, utility = {sol.u_vec[i]:6.3f}, Expected L = {par.el:6.3f} ')
+            
+            #print(f'For G = {par.G_vec[i]:6.3f}: L = {sol.L_vec[i]:6.3f}, utility = {sol.u_vec[i]:6.3f}, Expected L = {par.el:6.3f} ')
 
             assert np.isclose(sol.L_vec[i],par.el), 'L and expected L are not close' # check that l and expected l are close
             assert sol.L_vec[i] > 0, 'L is negative' # check that L is positive
 
-        print('\nL and expected L are close and L is positive')
+        #print(par.omega)
+        #print(par.el)
+
+        #print('\nL and expected L are close and L is positive')
