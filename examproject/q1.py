@@ -74,7 +74,7 @@ class Worker:
 
             print(f'For G = {par.G_vec[i]:6.3f}: L = {sol.L_vec[i]:6.3f}, utility = {sol.u_vec[i]:6.3f}, Expected L = {par.el:6.3f} ')
 
-            # assert np.isclose(sol.L_vec[i],par.el), 'L and expected L are not close' # check that l and expected l are close
+            assert np.isclose(sol.L_vec[i],par.el), 'L and expected L are not close' # check that l and expected l are close
             assert sol.L_vec[i] > 0, 'L is negative' # check that L is positive
 
-        return sol.L_vec, sol.u_vec
+        print('\nL and expected L are close and L is positive')
