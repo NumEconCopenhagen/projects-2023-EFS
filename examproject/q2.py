@@ -13,7 +13,7 @@ class hair_salon():
         self.sol = SimpleNamespace() # create simplenamespace for solutions
         self.sim = SimpleNamespace()
 
-        if do_print: print('calling .setup()')
+        if do_print: print(f'calling .setup()\n')
         self.setup() # calls setup function, defined below
 
     def setup(self):
@@ -38,6 +38,7 @@ class hair_salon():
         sim.l_vec = np.linspace(0.000000000001,5,100) # vector of l
         sim.profit_vec = np.zeros(sim.l_vec.size) # simulated vector of profits
 
+
     def calc_profit(self,l,k):
         """ calculate profit """
 
@@ -51,10 +52,12 @@ class hair_salon():
         
         return revenue - payroll # profit
     
+    
     def value_of_choice(self,l,k):
         """ calculate value of choice """
 
         return -self.calc_profit(l,k)
+    
     
     def expected_optimal_l(self,k):
         """ calculate expected optimal l """
@@ -63,6 +66,7 @@ class hair_salon():
         sol = self.sol
             
         return ((1-par.eta)*k/par.w)**(1/par.eta)
+    
     
     def solve(self,do_print=True):
         """ solve model """
@@ -88,7 +92,8 @@ class hair_salon():
             assert np.isclose(sol.l_vec[i],sol.el_vec[i]), 'l and expected l are not close' # check that l and expected l are close
             assert sol.l_vec[i] > 0, 'l is negative' # check that l is positive
         
-        return sol.l_vec, sol.profit_vec, sol.el_vec
+        print('\nl and expected l are close and l is positive')
+            
     
     def plot_profit(self):
         """ plot profit """
@@ -107,8 +112,8 @@ class hair_salon():
             ax = fig.add_subplot(1,1,1)
             ax.plot(sim.l_vec,sim.profit_vec)
             ax.plot(sol.l_vec[i],sol.profit_vec[i],'o')
-            ax.set_xlabel(r'$l$')
-            ax.set_ylabel(r'$\pi$')
+            ax.set_xlabel(r'$\ell_t$')
+            ax.set_ylabel(r'$\pi_t$')
             ax.legend([r'$\pi(l)$',r'$\pi(l^*)$'])
-            ax.set_title(f'Profit wrt. $l$, for $\kappa_t={k}$')
+            ax.set_title(f'Profit wrt. $\ell_t$, for $\kappa_t={k}$')
             ax.grid(True)
