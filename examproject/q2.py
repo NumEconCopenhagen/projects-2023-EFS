@@ -23,30 +23,31 @@ class hair_salon():
         sol = self.sol
         sim = self.sim
 
-        # baseline parameters
+        # static model parameters
         par.eta = 0.5 # elasticity of demand
         par.w = 1.0 # hairdresser wage
         par.kappa_vec = np.linspace(1.0,2.0,2)
 
-        # dynamic model parameters
-        par.rho = 0.9 # 
-        par.sigma = 0.1 # std. dev. of kappa shocks
-        par.T = 120 # number of periods
-        par.iota = 0.01 # fixed adjusment cost for hiring or firing a hairdresser
-        par.R = (1+0.01)**(1/12) # monthly discout factor
-        par.K = 100 # number of random schock series
-        par.epsilon = np.random.normal(-0.5*sigma**2,sigma) # random part of the demand shock
-        par.kappa_init = -1 # initial kappa
-
-        # solution vectors
+        # static model solution vectors
         sol.l_vec = np.zeros(par.kappa_vec.size) # vector of optimal l
         sol.el_vec = np.zeros(par.kappa_vec.size) # vector of optimal expected l
         sol.profit_vec = np.zeros(par.kappa_vec.size) # vector of optimal profit
 
-        # simulation vectors
+        # static model simulation vectors
         sim.kappa = 2.0 # kappa
         sim.l_vec = np.linspace(0.000000000001,5,100) # vector of l
         sim.profit_vec = np.zeros(sim.l_vec.size) # simulated vector of profits
+
+        # dynamic model parameters
+        par.rho = 0.9
+        par.sigma = 0.1 # std. dev. of random component of demand shocks
+        par.iota = 0.01 # fixed adjusment cost for hiring or firing
+        par.R = (1+0.01)**(1/12) # monthly discout factor
+        par.epsilon = np.random.normal(-0.5*par.sigma**2,par.sigma) # random part of the demand shock
+        par.kappa_init = -1 # initial kappa
+        par.l_init = 0.0 # initial l
+        par.T = 120 # number of periods
+        par.K = 100 # number of random schock series
 
 
     def calc_profit(self,l,k):
@@ -127,3 +128,43 @@ class hair_salon():
             ax.legend([r'$\pi(l)$',r'$\pi(l^*)$'])
             ax.set_title(f'Profit wrt. $\ell_t$, for $\kappa_t={k}$')
             ax.grid(True)
+
+    
+    def AR1_demand_shock(self,k,par):
+        """ AR1 demand shock process """
+
+        return np.exp(par.rho*np.log(k) + par.epsilon)
+
+
+    def ex_post_profit(self,l,k,t,par):
+        """ calculate ex post profit """
+
+        if l[t]==l[t-1]:
+            x = 0
+        else:
+            x = par.iota
+        
+        return (par.R**-t)*[k*(l**(1-par.eta))-par.w*l-x]
+    
+    
+    def ex_ante_profit(self,l,k,t,par,K):
+        """ calculate ex ante profit """
+
+        for t in reverse(range(par.T)):
+
+            return 
+
+        return
+        
+
+    def dynamic_solve(self):
+        """ solve dynamic model """
+
+        par = self.par
+        sol = self.sol
+        sim = self.sim
+
+        # expected value of future profits
+        ex_ante = 0.0 
+        
+        return 
