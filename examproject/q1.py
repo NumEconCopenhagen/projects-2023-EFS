@@ -26,7 +26,6 @@ class Household:
 
         # f. solution vectors
         sol.L_vec = np.zeros(par.G.size) 
-
      
 
     def calc_utility(self,L):
