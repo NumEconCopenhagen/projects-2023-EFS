@@ -46,7 +46,7 @@ class Worker:
         return -u_func(self,L,g)
 
     def expected_optimal_L(self,g):
-        """ calculate expected optimal l """
+        """ calculate expected optimal L """
             
         par = self.par
         sol = self.sol
@@ -63,7 +63,7 @@ class Worker:
         opt = SimpleNamespace()
         
         guess = 7.0 # initial guess
-        bound = (0.000000000001,24) # bounds for l
+        bound = (0.000000000001,24) # bounds for L
 
         # a. call solver
         for i, g in enumerate(par.G_vec):
@@ -81,7 +81,7 @@ class Worker:
 
             print(f'For G = {par.G_vec[i]:6.3f}: L = {L_vec[i]:6.3f}, utility = {u_vec[i]:6.3f}, ')
 
-            assert np.isclose(sol.L_vec[i],sol.el_vec[i]), 'l and expected l are not close' # check that l and expected l are close
-            assert sol.l_vec[i] > 0, 'l is negative' # check that l is positive
+            assert np.isclose(sol.L_vec[i],sol.el_vec[i]), 'L and expected L are not close' # check that l and expected l are close
+            assert sol.l_vec[i] > 0, 'L is negative' # check that L is positive
 
         return sol.L_vec, sol.u_vec, sol.el_vec
