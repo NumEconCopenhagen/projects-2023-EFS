@@ -78,7 +78,7 @@ class hair_salon():
 
             print(f'For kappa = {par.kappa_vec[i]:6.3f}: l = {sol.l_vec[i]:6.3f}, profit = {sol.profit_vec[i]:6.3f}, expected l = {sol.el_vec[i]:6.3f}')
 
-            assert np.isclose(sol.l_vec[i],sol.el_vec[i]), 'l and expected l are not close'
-            assert sol.l_vec[i] > 0, 'l is negative'
+            assert np.isclose(sol.l_vec[i],sol.el_vec[i]), 'l and expected l are not close' # check that l and expected l are close
+            assert sol.l_vec[i] > 0, 'l is negative' # check that l is positive
         
         return sol.l_vec, sol.profit_vec, sol.el_vec
