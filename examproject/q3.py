@@ -14,7 +14,7 @@ def griewank_(x1,x2):
     return A-B+1
 
 def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iterations):
-    np.random.seed(1234)
+    
     x_best = None  # Best solution found so far
     f_best = np.inf  # Best function value found so far
     initial_guesses = []  # Store effective initial guesses
@@ -61,7 +61,8 @@ def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iteration
     print(f'Best iteration counting warm up{best_iteration:4d}\n',end='')
     print(f'Best iteration not counting warm up{best_iteration - warmup_iterations:4d}',end='')
 
-    return x_best, initial_guesses
+    return x_best, initial_guesses, best_iteration
 
-
+def average_list(list):
+    return sum(list)/len(list)
 
