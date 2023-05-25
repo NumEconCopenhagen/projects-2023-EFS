@@ -43,7 +43,6 @@ class hair_salon():
         par.sigma = 0.1 # std. dev. of random component of demand shocks
         par.iota = 0.01 # fixed adjusment cost for hiring or firing
         par.R = (1+0.01)**(1/12) # monthly discout factor
-        par.epsilon = np.random.normal(-0.5*par.sigma**2,par.sigma) # random part of the demand shock
         par.kappa_init = -1 # initial kappa
         par.l_init = 0.0 # initial l
         par.T = 120 # number of periods
@@ -130,7 +129,7 @@ class hair_salon():
             ax.grid(True)
 
     
-    def AR1_demand_shock(self,k,par):
+    def AR1_demand_shock(self):
         """ AR1 demand shock process """
 
         return np.exp(par.rho*np.log(k) + par.epsilon)
@@ -146,7 +145,7 @@ class hair_salon():
         
         return (par.R**-t)*[k*(l**(1-par.eta))-par.w*l-x]
     
-    
+
     def ex_ante_profit(self,l,k,t,par,K):
         """ calculate ex ante profit """
 
@@ -167,4 +166,26 @@ class hair_salon():
         # expected value of future profits
         ex_ante = 0.0 
         
-        return 
+        return
+    
+    def last_period_profit(self,l,k,par):
+        """ calculate last period profit """
+
+        return k*(l**(1-par.eta))-par.w*l
+    
+    def H(self):
+        """ calculate H """
+
+        par = self.par
+        sol = self.sol
+        sim = self.sim
+
+        # a. expected profit
+        h_plus = 0.0
+
+        for k in len(par.K):
+            par.epsilon = np.random.normal(-0.5*par.sigma**2,par.sigma) # draw random part of the demand shock
+            par.dyn_kappa = self.AR1_demand_shock(k,par) # calculate kappa
+            par.dyn_l = self.expected_optimal_l(par.dyn_kappa) # calculate expected optimal l
+
+
