@@ -11,6 +11,7 @@ class hair_salon():
 
         self.par = SimpleNamespace() # create simplenamespace for parameters
         self.sol = SimpleNamespace() # create simplenamespace for solutions
+        self.sim = SimpleNamespace()
 
         if do_print: print('calling .setup()')
         self.setup() # calls setup function, defined below
@@ -20,6 +21,7 @@ class hair_salon():
 
         par = self.par
         sol = self.sol
+        sim = self.sim
 
         # baseline parameters
         par.eta = 0.5 # elasticity of demand
@@ -30,6 +32,11 @@ class hair_salon():
         sol.l_vec = np.zeros(par.kappa_vec.size) # vector of optimal l
         sol.el_vec = np.zeros(par.kappa_vec.size) # vector of optimal expected l
         sol.profit_vec = np.zeros(par.kappa_vec.size) # vector of optimal profit
+
+        # simulation vectors
+        sim.kappa = 2.0 # kappa
+        sim.l_vec = np.linspace(0.000000000001,5,100) # vector of l
+        sim.profit_vec = np.zeros(sim.l_vec.size) # simulated vector of profits
 
     def calc_profit(self,l,k):
         """ calculate profit """
@@ -82,3 +89,26 @@ class hair_salon():
             assert sol.l_vec[i] > 0, 'l is negative' # check that l is positive
         
         return sol.l_vec, sol.profit_vec, sol.el_vec
+    
+    def plot_profit(self):
+        """ plot profit """
+
+        import matplotlib.pyplot as plt
+
+        par = self.par
+        sol = self.sol
+        sim = self.sim
+
+        for i, k in enumerate(par.kappa_vec):
+            for j, l in enumerate(sim.l_vec):
+                sim.profit_vec[j] = self.calc_profit(l,k)    
+            # a. plot
+            fig = plt.figure()
+            ax = fig.add_subplot(1,1,1)
+            ax.plot(sim.l_vec,sim.profit_vec)
+            ax.plot(sol.l_vec[i],sol.profit_vec[i],'o')
+            ax.set_xlabel(r'$l$')
+            ax.set_ylabel(r'$\pi$')
+            ax.legend([r'$\pi(l)$',r'$\pi(l^*)$'])
+            ax.set_title(f'Profit wrt. $l$, for $\kappa_t={k}$')
+            ax.grid(True)
