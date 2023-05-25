@@ -43,7 +43,6 @@ def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iteration
                 f_best = f_current
                 if iteration >= warmup_iterations:
                     best_iteration = iteration
-                    best_x_initial_zero = x_initial_zero
                     print(f'{iteration:4d}: x0 = ({x_initial_zero[0]:7.2f},{x_initial_zero[1]:7.2f})',end='')
                     print(f' -> converged at ({x_best[0]:7.2f},{x_best[1]:7.2f}) with f = {f_best:12.8f}')
         # Check if warm-up iterations are completed
@@ -59,10 +58,8 @@ def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iteration
             # Store the effective initial guess
             initial_guesses.append(x_initial_zero)
 
-    print(f'Best iteration counting warm up{best_iteration:4d}: x0 = ({best_x_initial_zero[0]:7.2f},{best_x_initial_zero[1]:7.2f})',end='')
-    print(f' -> converged at ({x_best[0]:7.2f},{x_best[1]:7.2f}) with f = {f_best:12.8f}')
-    print(f'Best iteration not counting warm up{best_iteration - warmup_iterations:4d}: x0 = ({best_x_initial_zero[0]:7.2f},{best_x_initial_zero[1]:7.2f})',end='')
-    print(f' -> converged at ({x_best[0]:7.2f},{x_best[1]:7.2f}) with f = {f_best:12.8f}')
+    print(f'Best iteration counting warm up{best_iteration:4d}\n',end='')
+    print(f'Best iteration not counting warm up{best_iteration - warmup_iterations:4d}',end='')
 
     return x_best, initial_guesses
 
