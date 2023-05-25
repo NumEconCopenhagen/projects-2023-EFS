@@ -28,6 +28,16 @@ class hair_salon():
         par.w = 1.0 # hairdresser wage
         par.kappa_vec = np.linspace(1.0,2.0,2)
 
+        # dynamic model parameters
+        par.rho = 0.9 # 
+        par.sigma = 0.1 # std. dev. of kappa shocks
+        par.T = 120 # number of periods
+        par.iota = 0.01 # fixed adjusment cost for hiring or firing a hairdresser
+        par.R = (1+0.01)**(1/12) # monthly discout factor
+        par.K = 100 # number of random schock series
+        par.epsilon = np.random.normal(-0.5*sigma**2,sigma) # random part of the demand shock
+        par.kappa_init = -1 # initial kappa
+
         # solution vectors
         sol.l_vec = np.zeros(par.kappa_vec.size) # vector of optimal l
         sol.el_vec = np.zeros(par.kappa_vec.size) # vector of optimal expected l
