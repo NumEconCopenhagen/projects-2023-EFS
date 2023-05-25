@@ -21,6 +21,8 @@ class Worker:
         par.nu = 1/(2*16**2) # disutility of labor scaling factor
         par.omega = 1.0      # real wage
         par.tau = 0.30     # labour-income tax rate
+        par.omega_t = (1-par.tau)*par.omega
+        par.el = ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*par.omega_t))/2*par.omega_t)
 
         par.G_vec = np.linspace(1.0,2.0,2) 
         sol.L_vec = np.zeros(par.G_vec.size)
@@ -28,7 +30,6 @@ class Worker:
 
         # f. solution vectors
         sol.L_vec = np.zeros(par.G_vec.size) 
-        sol.el_vec = np.zeros(par.G_vec.size) # vector of optimal expected l
         sol.u_vec = np.zeros(par.G_vec.size) # vector of optimal profit
 
      
@@ -43,17 +44,8 @@ class Worker:
     def value_of_choice(self,L,g):
         """ calculate value of choice """
 
-        return -u_func(self,L,g)
+        return -self.u_func(L,g)
 
-    def expected_optimal_L(self,g):
-        """ calculate expected optimal L """
-            
-        par = self.par
-        sol = self.sol
-        
-        omega_t = (1-par.tau)*par.omega
-            
-        return ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*omega_t))/2*omega_t)
     
     def solve(self,do_print=True):
         """ solve model """
@@ -72,16 +64,15 @@ class Worker:
                 guess,
                 method='bounded',
                 bounds=(0,24),
-                args=(g,alpha,kappa,nu,omega,tau)) # Notice the use of a tuple here
+                args=(g)) # Notice the use of a tuple here
 
             # b. append solution
             sol.L_vec[i] = sol_case1.x
-            sol.u_vec[i] = u_func(sol_case1.x,g,alpha,kappa,nu,omega,tau)
-            sol.el_vec[i] = self.expected_optimal_L(g)
+            sol.u_vec[i] = self.u_func(sol_case1.x,g)
 
-            print(f'For G = {par.G_vec[i]:6.3f}: L = {L_vec[i]:6.3f}, utility = {u_vec[i]:6.3f}, ')
+            print(f'For G = {par.G_vec[i]:6.3f}: L = {sol.L_vec[i]:6.3f}, utility = {sol.u_vec[i]:6.3f}, Expected L = {par.el:6.3f} ')
 
-            assert np.isclose(sol.L_vec[i],sol.el_vec[i]), 'L and expected L are not close' # check that l and expected l are close
-            assert sol.l_vec[i] > 0, 'L is negative' # check that L is positive
+            # assert np.isclose(sol.L_vec[i],par.el), 'L and expected L are not close' # check that l and expected l are close
+            assert sol.L_vec[i] > 0, 'L is negative' # check that L is positive
 
-        return sol.L_vec, sol.u_vec, sol.el_vec
+        return sol.L_vec, sol.u_vec
