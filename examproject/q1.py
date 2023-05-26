@@ -3,9 +3,6 @@ from types import SimpleNamespace
 import numpy as np
 from scipy import optimize
 
-import pandas as pd 
-import matplotlib.pyplot as plt
-
 class Worker:
 
     def __init__(self):
@@ -21,8 +18,6 @@ class Worker:
         par.nu = 1/(2*16**2) # disutility of labor scaling factor
         par.omega = 1.0      # real wage
         par.tau = 0.30     # labour-income tax rate
-        #par.omega_t = (1-par.tau)*par.omega
-        #par.el = ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*par.omega_t**2))/(2*par.omega_t))
 
         par.G_vec = np.linspace(1.0,2.0,2)
 
@@ -31,7 +26,7 @@ class Worker:
 
         # f. solution vectors
         sol.L_vec = np.zeros(par.G_vec.size) 
-        sol.u_vec = np.zeros(par.G_vec.size) # vector of optimal profit
+        sol.u_vec = np.zeros(par.G_vec.size)
 
      
     def u_func(self,L,g):
@@ -62,7 +57,7 @@ class Worker:
 
         
         guess = 7.0 # initial guess
-        bound = (0.000000000001,24) # bounds for L
+        bound = (1e-8,24) # bounds for L
 
         # a. call solver
         for i, g in enumerate(par.G_vec):
@@ -70,19 +65,16 @@ class Worker:
                 self.value_of_choice,
                 guess,
                 method='bounded',
-                bounds=(0,24),
-                args=(g)) # Notice the use of a tuple here
+                bounds=(bound),
+                args=(g))
 
             # b. append solution
             sol.L_vec[i] = sol_case1.x
             sol.u_vec[i] = self.u_func(sol_case1.x,g)
             
-            print(f'For G = {par.G_vec[i]:6.3f}: L = {sol.L_vec[i]:6.3f}, utility = {sol.u_vec[i]:6.3f}, Expected L = {par.el:6.3f} ')
+            #print(f'For G = {par.G_vec[i]:6.3f}: L = {sol.L_vec[i]:6.3f}, utility = {sol.u_vec[i]:6.3f}, Expected L = {par.el:6.3f} ')
 
             assert np.isclose(sol.L_vec[i],par.el), 'L and expected L are not close' # check that l and expected l are close
             assert sol.L_vec[i] > 0, 'L is negative' # check that L is positive
 
-        #print(par.omega)
-        #print(par.el)
-
-        print('\nL and expected L are close and L is positive')
+        #print('\nL and expected L are close and L is positive')

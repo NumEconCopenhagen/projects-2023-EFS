@@ -24,14 +24,11 @@ class Worker2:
         par.sigma = 1.001
         par.rho = 1.001
         par.epsilon = 1.0
-     # labour-income tax rate
+
+        # labour-income tax rate
         par.omega_t = []
         par.el = []
         par.G_vec = np.linspace(1e-8, 100-(1e-8), 50000) #1.0#[]
-        #par.omega_t = (1-par.tau)*par.omega
-        #par.el = ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*par.omega_t**2))/(2*par.omega_t))
-        #par.G_vec = par.tau * par.omega * par.el * ((1-par.tau) * par.omega)
-
 
         sol.L_vec = []
         sol.u_vec = []
@@ -62,11 +59,8 @@ class Worker2:
         sol = self.sol
         opt = SimpleNamespace()
 
-        #print(par.G_vec)
         par.omega_t = (1-par.tau)*par.omega
         par.el = ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*par.omega_t**2))/(2*par.omega_t))
-        #par.G_vec = par.tau * par.omega * par.el * ((1-par.tau) * par.omega)
-        #print(par.G_vec)
 
         guess = 7.0 # initial guess
         bound = (1e-8,24) # bounds for L
@@ -78,23 +72,13 @@ class Worker2:
                 self.value_of_choice,
                 guess,
                 method='bounded',
-                bounds=(0.0000000,24),
+                bounds=(bound),
                 args=(g)) # Notice the use of a tuple here
 
                 # b. append solution
             sol.L_vec.append(sol_case1.x) 
             sol.u_vec.append(self.u_func(sol_case1.x,g))
-                #print(sol.L_vec)
-            
-            #print(f'For G = {par.G_vec[i]:6.3f}: L = {sol.L_vec[i]:6.3f}, utility = {sol.u_vec[i]:6.3f}, Expected L = {par.el:6.3f} ')
 
-            #assert np.isclose(sol.L_vec[i],par.el), 'L and expected L are not close' # check that l and expected l are close
-            #assert sol.L_vec[i] > 0, 'L is negative' # check that L is positive
-
-        #print(par.omega)
-        #print(par.el)
-
-        #print('\nL and expected L are close and L is positive')
         return par.G_vec, sol.L_vec, sol.u_vec, par.tau
     
 
