@@ -8,7 +8,7 @@ A number of functions have been defined and used to operate the steps for import
 We apply the **following datasets**:
 
 1. API: NRHP (dst.dk) 
-1. FU07_cp.xlsx (dst.dk)
+2. FU07_cp.xlsx (dst.dk)
 
 **Dependencies:** Apart from a standard Anaconda Python 3 installation, the project requires the following installations:
 
