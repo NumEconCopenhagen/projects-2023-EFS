@@ -6,7 +6,7 @@ from scipy import optimize
 import pandas as pd 
 import matplotlib.pyplot as plt
 
-class Worker2:
+class Worker3:
 
     def __init__(self):
         """ setup model """
@@ -20,7 +20,7 @@ class Worker2:
         par.kappa = 1.0      # free private consumption component
         par.nu = 1/(2*16**2) # disutility of labor scaling factor
         par.omega = 1.0      # real wage
-        par.tau = 0.33868 #np.linspace(1e-8, 1-(1e-8), 500)
+        par.tau = np.linspace(1e-8, 100-(1e-8), 50000) #np.linspace(1e-8, 1-(1e-8), 500)
         par.sigma = 1.001
         par.rho = 1.001
         par.epsilon = 1.0
@@ -43,7 +43,7 @@ class Worker2:
         par = self.par
         sol = self.sol
 
-        C = (par.kappa+(1-par.tau)*par.omega*L)
+        C = (par.kappa+(1-par.tau_separated)*par.omega*L)
         
         G = g #par.tau*par.omega*par.el*((1-par.tau)*par.omega,G)
 
@@ -72,8 +72,9 @@ class Worker2:
         bound = (1e-8,24) # bounds for L
 
         # a. call solver
-        for  g in par.G_vec:
+        for i,g in enumerate(par.G_vec):
             
+            par.tau_separated = par.tau[i]
             sol_case1 = optimize.minimize_scalar(
                 self.value_of_choice,
                 guess,
