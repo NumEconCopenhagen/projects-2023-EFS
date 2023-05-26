@@ -27,7 +27,7 @@ class Worker2:
      # labour-income tax rate
         par.omega_t = []
         par.el = []
-        par.G_vec = np.linspace(1e-8, 100-(1e-8), 500) #1.0#[]
+        par.G_vec = np.linspace(1e-8, 100-(1e-8), 50000) #1.0#[]
         #par.omega_t = (1-par.tau)*par.omega
         #par.el = ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*par.omega_t**2))/(2*par.omega_t))
         #par.G_vec = par.tau * par.omega * par.el * ((1-par.tau) * par.omega)
