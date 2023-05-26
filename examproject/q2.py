@@ -28,25 +28,26 @@ class hair_salon():
         par.w = 1.0 # hairdresser wage
         par.kappa_vec = np.linspace(1.0,2.0,2)
 
-        # static model solution vectors
-        sol.l_vec = np.zeros(par.kappa_vec.size) # vector of optimal l
-        sol.el_vec = np.zeros(par.kappa_vec.size) # vector of optimal expected l
-        sol.profit_vec = np.zeros(par.kappa_vec.size) # vector of optimal profit
-
         # static model simulation vectors
         sim.kappa = 2.0 # kappa
         sim.l_vec = np.linspace(0.000000000001,5,100) # vector of l
         sim.profit_vec = np.zeros(sim.l_vec.size) # simulated vector of profits
+
+        # static model solution vectors
+        sol.l_vec = np.zeros(par.kappa_vec.size) # vector of optimal l
+        sol.el_vec = np.zeros(par.kappa_vec.size) # vector of optimal expected l
+        sol.profit_vec = np.zeros(par.kappa_vec.size) # vector of optimal profit
 
         # dynamic model parameters
         par.rho = 0.9
         par.sigma = 0.1 # std. dev. of random component of demand shocks
         par.iota = 0.01 # fixed adjusment cost for hiring or firing
         par.R = (1+0.01)**(1/12) # monthly discout factor
-        par.kappa_init = -1 # initial kappa
+        par.kappa_init = 1 # initial kappa
         par.l_init = 0.0 # initial l
         par.T = 120 # number of periods
-        par.K = 100 # number of random schock series
+        par.K = 500 # number of random schock series
+        par.epsilon = 1.0 # random component of demand shocks
 
 
     def calc_profit(self,l,k):
@@ -129,50 +130,41 @@ class hair_salon():
             ax.grid(True)
 
     
-    def AR1_demand_shock(self):
+    def AR1_demand_shock(self,k):
         """ AR1 demand shock process """
 
-        return np.exp(par.rho*np.log(k) + par.epsilon)
+        par = self.par 
+        sim = self.sim
+
+        # print(f'calling .AR1_demand_shock()')
+        print(f'epsilon = {par.epsilon}')
+        # print(f'rho = {par.rho}, k-1 = {k}, epsilon = {par.epsilon}')
+
+        demand_shock = par.rho*k*np.exp(par.epsilon)
+
+        print(f'demand shock = {demand_shock}')
+        
+        return demand_shock
 
 
-    def ex_post_profit(self,l,k,t,par):
-        """ calculate ex post profit """
+    def period_value(self,lv,l,k,t,par):
+        """ calculate ex-post period calue """
 
-        if l[t]==l[t-1]:
+        if lv[t]==lv[t-1]:
             x = 0
         else:
             x = par.iota
         
-        return (par.R**-t)*[k*(l**(1-par.eta))-par.w*l-x]
-    
+        period_value = k*(l**(1-par.eta))-par.w*l-x
+        discounting = par.R**-t
 
-    def ex_ante_profit(self,l,k,t,par,K):
-        """ calculate ex ante profit """
-
-        for t in reverse(range(par.T)):
-
-            return 
-
-        return
+        # print(f'\nTypes: R^-t = {type(par.R**-t)}, second_par= {type(k*(l**(1-par.eta))-par.w*l-x)}, R = {type(par.R)}, t = {type(t)}, l = {type(l)}, k = {type(k)}, eta = {type(par.eta)}, w = {type(par.w)}, x = {type(x)}')
+        # print(f'{np.asarray(par.R**-t)*[k*(l**(1-par.eta))-par.w*l-x]}')
+        # print(f'Type of solution = {type(np.asarray(par.R**-t)*[k*(l**(1-par.eta))-par.w*l-x])}')
         
-
-    def dynamic_solve(self):
-        """ solve dynamic model """
-
-        par = self.par
-        sol = self.sol
-        sim = self.sim
-
-        # expected value of future profits
-        ex_ante = 0.0 
-        
-        return
+        return discounting * period_value
     
-    def last_period_profit(self,l,k,par):
-        """ calculate last period profit """
 
-        return k*(l**(1-par.eta))-par.w*l
-    
     def H(self):
         """ calculate H """
 
@@ -180,12 +172,45 @@ class hair_salon():
         sol = self.sol
         sim = self.sim
 
-        # a. expected profit
-        h_plus = 0.0
+        sol.dyn_l_vec = np.zeros(par.T) # initialize vector of l dynamic solutions
+        sol.dyn_k_vec = np.zeros(par.T) # initialize vector of kappa dynamic solutions
 
-        for k in len(par.K):
-            par.epsilon = np.random.normal(-0.5*par.sigma**2,par.sigma) # draw random part of the demand shock
-            par.dyn_kappa = self.AR1_demand_shock(k,par) # calculate kappa
-            par.dyn_l = self.expected_optimal_l(par.dyn_kappa) # calculate expected optimal l
+        # a. ex-post and ex-ante values
+        sol.H_plus = 0.0 # initialize ex-ante expected values
+        sol.h_plus = np.zeros(par.K) # initialize vector of ex-post period values (h)
 
+        for k in range(par.K): # loop over number of random shock series (simulations)
+            
+            print(f'\n**********************************************************************************************') 
+            print(f'Simulation {k} of {par.K}')
+            print(f'**********************************************************************************************') 
 
+            for t in range(par.T): # loop over periods
+                
+                print(f'\nt = {t}')
+                par.epsilon = np.random.normal(-0.5*par.sigma**2,par.sigma) # draw random part of the demand shock
+                
+                if t == 0: # if first period:
+                    
+                    sol.dyn_k_vec[t] = self.AR1_demand_shock(par.kappa_init) # calculate kappa for period 0
+
+                else: # if not first period:
+                    
+                    sol.dyn_k_vec[t] = self.AR1_demand_shock(sol.dyn_k_vec[t-1]) # calculate kappa for period t
+                
+                # print(f'\nsol.dyn_k_vec[t] = {sol.dyn_k_vec[t]}, type = {type(sol.dyn_k_vec[t])}')
+
+                sol.dyn_l_vec[t] = self.expected_optimal_l(sol.dyn_k_vec[t]) # calculate expected optimal l for period t
+                
+                # print(f'sol.dyn_l_vec[t] = {sol.dyn_l_vec[t]}, typer = {type(sol.dyn_l_vec[t])}')
+
+                # b. append ex-post period values
+                period_value = self.period_value(sol.dyn_l_vec,sol.dyn_l_vec[t],sol.dyn_k_vec[t],t,par) # calculate value for period t
+                print(f'{t}th period value = {period_value }')
+                
+                sol.h_plus[k] += period_value # append period value to k'th simulation lifetime value
+            
+            print(f'\n>>> ex-post lifetime value (h) for {k}th simulation = {sol.h_plus[k]:6.3f}')
+
+        sol.H_plus = np.sum(sol.h_plus)/par.K # calculate ex-ante expected value
+        print(f'*** ex-ante expected lifetime value (H) = {sol.H_plus:6.3f} *** \n')
