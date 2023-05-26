@@ -11,7 +11,7 @@ def griewank_(x1,x2):
     B = np.cos(x1/np.sqrt(1))*np.cos(x2/np.sqrt(1))
     return A-B+1
 
-def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iterations, doprint = True):
+def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iterations, do_print = True):
     
     x_best = None  # Best solution found so far
     f_best = np.inf  # Best function value found so far
@@ -41,7 +41,7 @@ def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iteration
                 f_best = f_current
                 if iteration >= warmup_iterations:
                     best_iteration = iteration
-                    if doprint:
+                    if do_print:
                         print(f'{iteration:4d}: x0 = ({x_initial_zero[0]:7.2f},{x_initial_zero[1]:7.2f})',end='')
                         print(f' -> converged at ({x_best[0]:7.2f},{x_best[1]:7.2f}) with f = {f_best:12.8f}')
 
@@ -49,7 +49,7 @@ def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iteration
         if iteration >= warmup_iterations:
             # Store the effective initial guess
             initial_guesses.append(x_initial_zero)
-    if doprint:
+    if do_print:
         print(f'Best iteration counting warm up{best_iteration:4d}\n',end='')
         print(f'Best iteration not counting warm up{best_iteration - warmup_iterations:4d}',end='')
 
