@@ -1,6 +1,7 @@
 from types import SimpleNamespace
+import time
 import numpy as np
-from scipy import optimize
+from scipy import optimize, interpolate
 
 class hair_salon():
 
@@ -46,9 +47,9 @@ class hair_salon():
         par.kappa_init = 1 # initial kappa
         par.l_init = 0.0 # initial l
         par.T = 120 # number of periods
-        par.K = 500 # number of random schock series
+        par.K = 50 # number of random schock series
         par.epsilon = 1.0 # random component of demand shocks
-
+        par.delta = 0.0 # value of delta
 
     def calc_profit(self,l,k):
         """ calculate profit """
@@ -165,12 +166,14 @@ class hair_salon():
         return discounting * period_value
     
 
-    def H(self):
+    def H(self,delta=0.0):
         """ calculate H """
 
         par = self.par
         sol = self.sol
         sim = self.sim
+
+        par.delta = delta
 
         sol.dyn_l_vec = np.zeros(par.T) # initialize vector of l dynamic solutions
         sol.dyn_k_vec = np.zeros(par.T) # initialize vector of kappa dynamic solutions
@@ -199,9 +202,14 @@ class hair_salon():
                     sol.dyn_k_vec[t] = self.AR1_demand_shock(sol.dyn_k_vec[t-1]) # calculate kappa for period t
                 
                 # print(f'\nsol.dyn_k_vec[t] = {sol.dyn_k_vec[t]}, type = {type(sol.dyn_k_vec[t])}')
-
-                sol.dyn_l_vec[t] = self.expected_optimal_l(sol.dyn_k_vec[t]) # calculate expected optimal l for period t
                 
+                optimal_policy = self.expected_optimal_l(sol.dyn_k_vec[t])
+
+                if par.delta == 0 or np.abs(sol.dyn_l_vec[t-1]-optimal_policy) > par.delta:
+                    sol.dyn_l_vec[t] = optimal_policy 
+                else:
+                    sol.dyn_l_vec[t] = sol.dyn_l_vec[t-1]
+
                 # print(f'sol.dyn_l_vec[t] = {sol.dyn_l_vec[t]}, typer = {type(sol.dyn_l_vec[t])}')
 
                 # b. append ex-post period values
@@ -214,3 +222,39 @@ class hair_salon():
 
         sol.H_plus = np.sum(sol.h_plus)/par.K # calculate ex-ante expected value
         print(f'*** ex-ante expected lifetime value (H) = {sol.H_plus:6.3f} *** \n')
+
+        return sol.H_plus
+
+    def delta_solve(self):
+
+        """ solve for delta """
+
+        par = self.par
+        sol = self.sol
+        sim = self.sim
+
+        # a. initialize
+        delta_min = 0.0
+        delta_max = 1.0
+        delta_guess = 0.5
+
+        # b. solve
+        while np.abs(delta_max-delta_min) > 1e-8:
+
+            if delta_guess == 0.0:
+                delta_guess = 1e-8
+
+            sol.H_plus = self.H(delta_guess)
+
+            if sol.H_plus > 0.0:
+                delta_min = delta_guess
+            else:
+                delta_max = delta_guess
+
+            delta_guess = (delta_max+delta_min)/2
+
+        print(f'*** delta = {delta_guess:6.3f} *** \n')
+
+        return delta_guess
+    
+   
