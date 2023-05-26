@@ -20,7 +20,7 @@ class Worker3:
         par.kappa = 1.0      # free private consumption component
         par.nu = 1/(2*16**2) # disutility of labor scaling factor
         par.omega = 1.0      # real wage
-        par.tau = np.linspace(1e-8, 100-(1e-8), 50000) #np.linspace(1e-8, 1-(1e-8), 500)
+        par.tau = np.linspace(1e-8, 1-(1e-8), 50000) #np.linspace(1e-8, 1-(1e-8), 500)
         par.sigma = 1.001
         par.rho = 1.001
         par.epsilon = 1.0
