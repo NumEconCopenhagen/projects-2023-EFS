@@ -3,16 +3,18 @@ from scipy.optimize import minimize
 import math
 
 def griewank(x):
-    """Define Griewank function"""
+    """ return Griewank function """
     return griewank_(x[0],x[1])
     
 def griewank_(x1,x2):
+    """ define Griewank function """
     A = x1**2/4000 + x2**2/4000
     B = np.cos(x1/np.sqrt(1))*np.cos(x2/np.sqrt(1))
     return A-B+1
 
 def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iterations, do_print = True):
-    
+    """ return the best solution, the best guesses and the best iteration by
+        optimizing the griewank function using multi-start """
     x_best = None  # Best solution found so far
     f_best = np.inf  # Best function value found so far
     initial_guesses = []  # Store effective initial guesses
@@ -56,5 +58,6 @@ def refined_global_optimizer(bounds, tolerance, warmup_iterations, max_iteration
     return x_best, initial_guesses, best_iteration
 
 def average_list(list):
+    """ compute the average of lists """
     return sum(list)/len(list)
 

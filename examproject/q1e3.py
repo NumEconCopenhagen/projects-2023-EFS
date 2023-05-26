@@ -6,7 +6,7 @@ from scipy import optimize
 class Worker1:
 
     def __init__(self):
-        """ setup model """
+        """ setup model parameters """
 
         # a. create namespaces
         par = self.par = SimpleNamespace()
@@ -17,9 +17,9 @@ class Worker1:
         par.kappa = 1.0      # free private consumption component
         par.nu = 1/(2*16**2) # disutility of labor scaling factor
         par.omega = 1.0      # real wage
-        par.tau = np.linspace(1e-8, 1-(1e-8), 500)
+        par.tau = np.linspace(1e-8, 1-(1e-8), 500) # labour-income tax rate
 
-        # labour-income tax rate
+        
         par.omega_t = []
         par.el = []
         par.G_vec = []
@@ -34,7 +34,7 @@ class Worker1:
         par = self.par
         sol = self.sol
 
-        C = (par.kappa+(1-par.tau_separated)*par.omega*L)
+        C = (par.kappa+(1-par.tau_separated)*par.omega*L) # define consumption
 
         return np.log(C**(par.alpha)*g**(1-par.alpha))-par.nu*L**2/2
 
@@ -51,9 +51,9 @@ class Worker1:
         sol = self.sol
         opt = SimpleNamespace()
 
-        par.omega_t = (1-par.tau)*par.omega
-        par.el = ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*par.omega_t**2))/(2*par.omega_t))
-        par.G_vec = par.tau * par.omega * par.el * ((1-par.tau) * par.omega)
+        par.omega_t = (1-par.tau)*par.omega # define omega_t
+        par.el = ((-par.kappa+ np.sqrt(par.kappa**2+4*(par.alpha/par.nu)*par.omega_t**2))/(2*par.omega_t)) # define q3's L*
+        par.G_vec = par.tau * par.omega * par.el * ((1-par.tau) * par.omega) # define vector of G
 
         guess = 7.0 # initial guess
         bound = (1e-8,24) # bounds for L
@@ -61,7 +61,7 @@ class Worker1:
         # a. call solver
         for  i, g in enumerate(par.G_vec):
             
-            par.tau_separated = par.tau[i]
+            par.tau_separated = par.tau[i] # optimize with one value of tau at a time
             sol_case1 = optimize.minimize_scalar(
                 self.value_of_choice,
                 guess,
@@ -70,7 +70,7 @@ class Worker1:
                 args=(g))
 
                 # b. append solution
-            sol.L_vec.append(sol_case1.x) 
-            sol.u_vec.append(self.u_func(sol_case1.x,g))
+            sol.L_vec.append(sol_case1.x) # append optimal Ls
+            sol.u_vec.append(self.u_func(sol_case1.x,g)) # append the utility
 
         return par.G_vec, sol.L_vec, sol.u_vec, par.tau
