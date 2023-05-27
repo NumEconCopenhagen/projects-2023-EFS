@@ -45,9 +45,9 @@ class hair_salon():
         par.iota = 0.01 # fixed adjusment cost for hiring or firing
         par.R = (1+0.01)**(1/12) # monthly discout factor
         par.kappa_init = 1 # initial kappa
-        par.l_init = 0.0 # initial l
+        par.l_init = 0 # initial l
         par.T = 120 # number of periods
-        par.K = 50 # number of random schock series
+        par.K = 100 # number of random schock series
         par.epsilon = 1.0 # random component of demand shocks
         par.delta = 0.0 # value of delta
 
@@ -78,6 +78,16 @@ class hair_salon():
         sol = self.sol
             
         return ((1-par.eta)*k/par.w)**(1/par.eta)
+    
+    def new_expected_optimal_l(self,k,t):
+        """ calculate expected optimal l """
+            
+        par = self.par
+        sol = self.sol
+
+        discount_factor = par.R**(t)   
+
+        return (discount_factor*(1-par.eta)*k/par.w)**(1/par.eta)
     
     
     def solve(self,do_print=True):
@@ -131,19 +141,19 @@ class hair_salon():
             ax.grid(True)
 
     
-    def AR1_demand_shock(self,k):
+    def AR1_demand_shock(self,k,do_print=False):
         """ AR1 demand shock process """
 
         par = self.par 
         sim = self.sim
 
-        # print(f'calling .AR1_demand_shock()')
-        print(f'epsilon = {par.epsilon}')
-        # print(f'rho = {par.rho}, k-1 = {k}, epsilon = {par.epsilon}')
+        demand_shock = par.rho*k*np.exp(par.epsilon) # calculate demand shock
 
-        demand_shock = par.rho*k*np.exp(par.epsilon)
-
-        print(f'demand shock = {demand_shock}')
+        if do_print:
+            print(f'calling .AR1_demand_shock()')
+            print(f'epsilon = {par.epsilon}')
+            print(f'rho = {par.rho}, k-1 = {k}, epsilon = {par.epsilon}')
+            print(f'demand shock = {demand_shock}')
         
         return demand_shock
 
@@ -159,38 +169,35 @@ class hair_salon():
         period_value = k*(l**(1-par.eta))-par.w*l-x
         discounting = par.R**-t
 
-        # print(f'\nTypes: R^-t = {type(par.R**-t)}, second_par= {type(k*(l**(1-par.eta))-par.w*l-x)}, R = {type(par.R)}, t = {type(t)}, l = {type(l)}, k = {type(k)}, eta = {type(par.eta)}, w = {type(par.w)}, x = {type(x)}')
-        # print(f'{np.asarray(par.R**-t)*[k*(l**(1-par.eta))-par.w*l-x]}')
-        # print(f'Type of solution = {type(np.asarray(par.R**-t)*[k*(l**(1-par.eta))-par.w*l-x])}')
-        
         return discounting * period_value
     
 
-    def H(self,delta=0.0):
+    def H(self,delta=0.0,K=50,new=False,do_print=False):
         """ calculate H """
 
         par = self.par
         sol = self.sol
         sim = self.sim
 
-        par.delta = delta
+        par.K = K # change K parameter with the call
+        par.delta = delta # change delta parameter with the call
+        # assert par.delta >= 0, 'delta cannot be negative' # check that delta is positive
 
         sol.dyn_l_vec = np.zeros(par.T) # initialize vector of l dynamic solutions
         sol.dyn_k_vec = np.zeros(par.T) # initialize vector of kappa dynamic solutions
-
+    
         # a. ex-post and ex-ante values
-        sol.H_plus = 0.0 # initialize ex-ante expected values
         sol.h_plus = np.zeros(par.K) # initialize vector of ex-post period values (h)
+        sim.dyn_k_vec = np.zeros((par.K)) # initialize matrix of kappa dynamic solutions
 
         for k in range(par.K): # loop over number of random shock series (simulations)
             
-            print(f'\n**********************************************************************************************') 
             print(f'Simulation {k} of {par.K}')
-            print(f'**********************************************************************************************') 
 
-            for t in range(par.T): # loop over periods
+            for t in range(par.T):
                 
-                print(f'\nt = {t}')
+                if do_print:
+                    print(f'\nt = {t}')
                 par.epsilon = np.random.normal(-0.5*par.sigma**2,par.sigma) # draw random part of the demand shock
                 
                 if t == 0: # if first period:
@@ -201,32 +208,72 @@ class hair_salon():
                     
                     sol.dyn_k_vec[t] = self.AR1_demand_shock(sol.dyn_k_vec[t-1]) # calculate kappa for period t
                 
-                # print(f'\nsol.dyn_k_vec[t] = {sol.dyn_k_vec[t]}, type = {type(sol.dyn_k_vec[t])}')
+                if do_print:
+                    print(f'sol.dyn_k_vec[{t}] = {sol.dyn_k_vec[t]}')
                 
-                optimal_policy = self.expected_optimal_l(sol.dyn_k_vec[t])
-
-                if par.delta == 0 or np.abs(sol.dyn_l_vec[t-1]-optimal_policy) > par.delta:
-                    sol.dyn_l_vec[t] = optimal_policy 
+                if new == False:
+                    optimal_policy = self.expected_optimal_l(sol.dyn_k_vec[t]) # calculate optimal l for period t
                 else:
-                    sol.dyn_l_vec[t] = sol.dyn_l_vec[t-1]
+                    optimal_policy = self.new_expected_optimal_l(sol.dyn_k_vec[t],t) # calculate optimal l for period t, with new policy suggestion
 
-                # print(f'sol.dyn_l_vec[t] = {sol.dyn_l_vec[t]}, typer = {type(sol.dyn_l_vec[t])}')
+                if t == 0:
+
+                    if par.delta == 0.0 or np.abs(par.l_init - optimal_policy) > par.delta:
+                        if do_print:
+                            print(f'l follows optimal policy')
+                        sol.dyn_l_vec[t] = optimal_policy 
+
+                    else:
+                        if do_print:
+                            print(f'delta is not zero and abs(l_init - optimal_policy) is not greater than delta')
+                        sol.dyn_l_vec[t] = par.l_init
+                
+                else:
+                    
+                    if par.delta == 0.0 or np.abs(sol.dyn_l_vec[t-1] - optimal_policy) > par.delta:
+                        if do_print:
+                            print(f'l follows optimal policy')
+                        sol.dyn_l_vec[t] = optimal_policy 
+                    
+                    else:
+                        if do_print:
+                            print(f'l is equal to the previous period')
+                        sol.dyn_l_vec[t] = sol.dyn_l_vec[t-1]                         
+
+                if do_print:
+                    print(f'sol.dyn_l_vec[{t}] = {sol.dyn_l_vec[t]}')
 
                 # b. append ex-post period values
                 period_value = self.period_value(sol.dyn_l_vec,sol.dyn_l_vec[t],sol.dyn_k_vec[t],t,par) # calculate value for period t
-                print(f'{t}th period value = {period_value }')
+                if do_print:
+                    print(f'{t}th period value = {period_value}')
                 
                 sol.h_plus[k] += period_value # append period value to k'th simulation lifetime value
-            
-            print(f'\n>>> ex-post lifetime value (h) for {k}th simulation = {sol.h_plus[k]:6.3f}')
 
+            sim.dyn_k_vec[k] += np.sum(sol.dyn_k_vec)/par.T # append kappa to k'th simulation kappa vector
+            if do_print:
+                print(f'\n>>> ex-post lifetime value (h) for {k}th simulation = {sol.h_plus[k]:6.3f}')
+                print(f'>>> average kappa for {k}th simulation = {sim.dyn_k_vec[k]:6.3f}\n')
+
+        sol.avg_k = np.sum(sim.dyn_k_vec)/par.K # calculate average kappa across simulations
         sol.H_plus = np.sum(sol.h_plus)/par.K # calculate ex-ante expected value
-        print(f'*** ex-ante expected lifetime value (H) = {sol.H_plus:6.3f} *** \n')
+        
+        if do_print:
+            print(f'\n********************************************************************')
+        print(f'*** ex-ante expected lifetime value (H) = {sol.H_plus:6.3f} ***')
+        # print(f'*** average kappa across simulations = {sol.avg_k:6.3f} ***')
+        
+        if do_print:
+            print(f'********************************************************************\n')
 
         return sol.H_plus
 
-    def delta_solve(self):
+    def value_of_choice_H(self,delta,new=False,do_print=False):
+        """ calculate value of choice of delta """
 
+        return -self.H(delta,new=new,do_print=do_print)
+
+    def delta_solve2(self,min=0.0,max=0.2,new=False,do_print=False):
         """ solve for delta """
 
         par = self.par
@@ -234,27 +281,14 @@ class hair_salon():
         sim = self.sim
 
         # a. initialize
-        delta_min = 0.0
-        delta_max = 1.0
-        delta_guess = 0.5
+        par.delta_min = min
+        par.delta_max = max
 
         # b. solve
-        while np.abs(delta_max-delta_min) > 1e-8:
+        sol.delta = optimize.minimize_scalar(self.value_of_choice_H,method='bounded',bounds=(par.delta_min,par.delta_max), args=(new,do_print))
 
-            if delta_guess == 0.0:
-                delta_guess = 1e-8
+        print(f'Optimal delta = {sol.delta.x:6.3f}, H = {-sol.delta.fun:6.3f}')
 
-            sol.H_plus = self.H(delta_guess)
-
-            if sol.H_plus > 0.0:
-                delta_min = delta_guess
-            else:
-                delta_max = delta_guess
-
-            delta_guess = (delta_max+delta_min)/2
-
-        print(f'*** delta = {delta_guess:6.3f} *** \n')
-
-        return delta_guess
+        return sol.delta.x, -sol.delta.fun
     
    
